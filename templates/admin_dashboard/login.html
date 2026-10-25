@@ -1,0 +1,47 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ziyo Management — Restricted Portal</title>
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+</head>
+<body style="background: #1E1E24; display: flex; align-items: center; justify-content: center; min-height: 100vh;">
+    <div style="background: #FFFFFF; width: 100%; max-width: 420px; padding: 40px; border-radius: var(--admin-radius); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);">
+        <div style="text-align: center; margin-bottom: 28px;">
+            <span style="font-size: 1.6rem; font-weight: 700; color: var(--admin-text-main); display: block;">Ziyo Studio</span>
+            <span style="font-size: 0.8rem; font-weight: 700; color: var(--admin-primary); text-transform: uppercase; letter-spacing: 0.08em;">Management Interface</span>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+            <div style="padding: 10px 14px; background: #FFEBEE; color: #C62828; font-size: 0.85rem; border-radius: 6px; margin-bottom: 16px;">
+                {{ message }}
+            </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+            <div style="margin-bottom: 18px;">
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px;">Staff Email</label>
+                {{ form.email }}
+            </div>
+
+            <div style="margin-bottom: 24px;">
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px;">Staff Password</label>
+                {{ form.password }}
+            </div>
+
+            <button type="submit" class="admin-btn admin-btn-primary" style="width: 100%; justify-content: center; padding: 12px;">
+                Authenticate &amp; Enter
+            </button>
+        </form>
+
+        <div style="text-align: center; margin-top: 24px; font-size: 0.75rem; color: var(--admin-text-muted);">
+            Restricted System &bull; Unauthorized access prohibited
+        </div>
+    </div>
+</body>
+</html>

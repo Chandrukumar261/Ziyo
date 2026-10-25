@@ -1,0 +1,65 @@
+{% extends 'admin_dashboard/base.html' %}
+{% load static %}
+
+{% block page_heading %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="admin-card" style="max-width: 700px;">
+    <div class="admin-card-header">
+        <h3 class="admin-card-title">{{ title }}</h3>
+        <a href="{% url 'dashboard:banner_list' %}" class="admin-btn admin-btn-outline admin-btn-sm">&larr; Back to Banners</a>
+    </div>
+
+    <div style="padding: 32px;">
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-group">
+                <label class="form-label">Banner Title *</label>
+                {{ form.title }}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Subtitle / Hook</label>
+                {{ form.subtitle }}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Banner Image File</label>
+                {{ form.image }}
+            </div>
+
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 16px;">
+                <div class="form-group">
+                    <label class="form-label">Button Target Link URL</label>
+                    {{ form.link_url }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Button Label</label>
+                    {{ form.button_text }}
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="form-group">
+                    <label class="form-label">Banner Location</label>
+                    {{ form.location }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Sort Order</label>
+                    {{ form.sort_order }}
+                </div>
+            </div>
+
+            <div class="form-check" style="margin-bottom: 24px;">
+                {{ form.is_active }}
+                <label for="{{ form.is_active.id_for_label }}">Active &amp; Displaying</label>
+            </div>
+
+            <div style="display: flex; gap: 14px;">
+                <button type="submit" class="admin-btn admin-btn-primary">Save Banner</button>
+                <a href="{% url 'dashboard:banner_list' %}" class="admin-btn admin-btn-outline">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Ziyo — Curated Minimalist Essentials & Lifestyle{% endblock %}
+
+{% block content %}
+<div class="ziyo-container">
+    <!-- Hero Banner Component -->
+    <section class="hero-slider">
+        <div class="hero-grid">
+            <div class="hero-content">
+                <span class="hero-tag">New Season Release</span>
+                <h1 class="hero-title">Timeless Objects for Intentional Spaces</h1>
+                <p class="hero-desc">
+                    Discover understated apparel, sculptural ceramics, and natural linen essentials crafted to elevate daily rituals.
+                </p>
+                <div style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap;">
+                    <a href="{% url 'catalog:product_list' %}" class="btn btn-primary" id="heroShopBtn">
+                        Shop Collection <i data-lucide="arrow-right" style="width: 18px; height: 18px;"></i>
+                    </a>
+                    <a href="{% url 'catalog:product_list' %}?sort=popular" class="btn btn-outline">
+                        View Lookbook
+                    </a>
+                </div>
+            </div>
+            <div class="hero-visual" style="background: linear-gradient(135deg, var(--hero-grad-start) 0%, var(--hero-grad-end) 100%); display: flex; align-items: center; justify-content: center;">
+                <div style="text-align: center; padding: 40px;">
+                    <span style="font-family: var(--font-serif); font-size: 2.5rem; color: var(--accent-primary); font-style: italic; display: block; margin-bottom: 8px;">Ziyo Studio</span>
+                    <span style="font-size: 0.85rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent-primary); font-weight: 600;">Autumn / Winter Edit</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Categories Strip -->
+    {% if featured_categories %}
+    <section class="ziyo-section" style="padding-top: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px;">
+            <div>
+                <span style="font-size: 0.8rem; font-weight: 700; color: var(--accent-primary); text-transform: uppercase; letter-spacing: 0.05em;">Curated Categories</span>
+                <h2 style="font-size: 1.75rem; margin-top: 4px;">Explore by Department</h2>
+            </div>
+            <a href="{% url 'catalog:product_list' %}" style="font-size: 0.875rem; font-weight: 600; color: var(--accent-primary); display: flex; align-items: center; gap: 4px;">
+                View All <i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i>
+            </a>
+        </div>
+
+        <div class="category-scroll">
+            {% for cat in featured_categories %}
+            <a href="{{ cat.get_absolute_url }}" class="category-pill-card">
+                <div class="category-icon-wrap">
+                    <i data-lucide="package" style="width: 24px; height: 24px; color: var(--accent-primary);"></i>
+                </div>
+                <div class="category-pill-name">{{ cat.name }}</div>
+            </a>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Trending Products Grid -->
+    <section class="ziyo-section">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 28px;">
+            <div>
+                <span style="font-size: 0.8rem; font-weight: 700; color: var(--accent-primary); text-transform: uppercase; letter-spacing: 0.05em;">Curator's Pick</span>
+                <h2 style="font-size: 1.75rem; margin-top: 4px;">Trending Essentials</h2>
+            </div>
+            <a href="{% url 'catalog:product_list' %}" style="font-size: 0.875rem; font-weight: 600; color: var(--accent-primary); display: flex; align-items: center; gap: 4px;">
+                Explore All <i data-lucide="arrow-right" style="width: 16px; height: 16px;"></i>
+            </a>
+        </div>
+
+        <div class="product-grid">
+            {% for product in trending_products %}
+            <div class="product-card">
+                <div class="card-media">
+                    <div class="card-badges">
+                        {% if product.discount_percentage > 0 %}
+                        <span class="badge badge-sale">-{{ product.discount_percentage }}%</span>
+                        {% endif %}
+                        {% if product.is_new_arrival %}
+                        <span class="badge badge-new">New</span>
+                        {% endif %}
+                    </div>
+
+                    <form action="{% url 'cart:toggle_wishlist' product.id %}" method="POST">
+                        {% csrf_token %}
+                        <button type="submit" class="wishlist-toggle" title="Save to Wishlist">
+                            <i data-lucide="heart" style="width: 18px; height: 18px; color: var(--accent-primary);"></i>
+                        </button>
+                    </form>
+
+                    <a href="{{ product.get_absolute_url }}">
+                        <img src="{{ product.primary_image_url }}" alt="{{ product.name }}" loading="lazy">
+                    </a>
+                </div>
+
+                <div class="card-info">
+                    <span class="card-category">{{ product.category.name }}</span>
+                    <a href="{{ product.get_absolute_url }}" class="card-title">{{ product.name }}</a>
+
+                    <div class="card-price-row">
+                        <span class="price-current">₹{{ product.price }}</span>
+                        {% if product.compare_at_price and product.compare_at_price > product.price %}
+                        <span class="price-original">₹{{ product.compare_at_price }}</span>
+                        {% endif %}
+                    </div>
+
+                    <div style="margin-top: 14px;">
+                        <form action="{% url 'cart:add_to_cart' product.id %}" method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="quantity" value="1">
+                            <button type="submit" class="btn btn-outline btn-block btn-sm" style="font-size: 0.8125rem;">
+                                <i data-lucide="plus" style="width: 14px; height: 14px;"></i> Quick Add
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; background: var(--bg-surface); border-radius: var(--radius-md);">
+                <p style="color: var(--text-muted); font-size: 1.1rem;">New curated products are being added shortly.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+
+    <!-- New Arrivals Section -->
+    {% if new_arrivals %}
+    <section class="ziyo-section">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 28px;">
+            <div>
+                <span style="font-size: 0.8rem; font-weight: 700; color: var(--accent-primary); text-transform: uppercase; letter-spacing: 0.05em;">Fresh Releases</span>
+                <h2 style="font-size: 1.75rem; margin-top: 4px;">New Arrivals</h2>
+            </div>
+            <a href="{% url 'catalog:product_list' %}?sort=newest" style="font-size: 0.875rem; font-weight: 600; color: var(--accent-primary); display: flex; align-items: center; gap: 4px;">
+                See All <i data-lucide="arrow-right" style="width: 16px; height: 16px;"></i>
+            </a>
+        </div>
+
+        <div class="product-grid">
+            {% for product in new_arrivals %}
+            <div class="product-card">
+                <div class="card-media">
+                    <div class="card-badges">
+                        <span class="badge badge-new">New</span>
+                    </div>
+
+                    <form action="{% url 'cart:toggle_wishlist' product.id %}" method="POST">
+                        {% csrf_token %}
+                        <button type="submit" class="wishlist-toggle" title="Save to Wishlist">
+                            <i data-lucide="heart" style="width: 18px; height: 18px; color: var(--accent-primary);"></i>
+                        </button>
+                    </form>
+
+                    <a href="{{ product.get_absolute_url }}">
+                        <img src="{{ product.primary_image_url }}" alt="{{ product.name }}" loading="lazy">
+                    </a>
+                </div>
+
+                <div class="card-info">
+                    <span class="card-category">{{ product.category.name }}</span>
+                    <a href="{{ product.get_absolute_url }}" class="card-title">{{ product.name }}</a>
+
+                    <div class="card-price-row">
+                        <span class="price-current">₹{{ product.price }}</span>
+                    </div>
+
+                    <div style="margin-top: 14px;">
+                        <form action="{% url 'cart:add_to_cart' product.id %}" method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="quantity" value="1">
+                            <button type="submit" class="btn btn-outline btn-block btn-sm">
+                                <i data-lucide="plus" style="width: 14px; height: 14px;"></i> Quick Add
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+</div>
+{% endblock %}

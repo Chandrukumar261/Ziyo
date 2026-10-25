@@ -1,0 +1,165 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Ziyo Management Portal{% endblock %}</title>
+    
+    <!-- Admin Master CSS -->
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+    
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Inline zero-flicker theme initialization -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('ziyo-theme');
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = savedTheme ? savedTheme : (prefersDark ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <aside class="admin-sidebar">
+        <div class="sidebar-brand">
+            <span>Ziyo Studio</span>
+            <span class="badge-role">{{ user.role|default:"Staff" }}</span>
+        </div>
+
+        <ul class="sidebar-nav">
+            <li class="sidebar-nav-item {% if request.resolver_match.url_name == 'overview' %}active{% endif %}">
+                <a href="{% url 'dashboard:overview' %}">
+                    <i data-lucide="layout-dashboard" style="width: 18px; height: 18px;"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+
+            <li class="sidebar-section-title">Catalog & Stock</li>
+            <li class="sidebar-nav-item {% if 'product' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="{% url 'dashboard:product_list' %}">
+                    <i data-lucide="package" style="width: 18px; height: 18px;"></i>
+                    <span>Products</span>
+                </a>
+            </li>
+            <li class="sidebar-nav-item {% if 'category' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="{% url 'dashboard:category_list' %}">
+                    <i data-lucide="folder-tree" style="width: 18px; height: 18px;"></i>
+                    <span>Categories</span>
+                </a>
+            </li>
+            <li class="sidebar-nav-item {% if 'inventory' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="{% url 'dashboard:inventory_list' %}">
+                    <i data-lucide="boxes" style="width: 18px; height: 18px;"></i>
+                    <span>Inventory</span>
+                </a>
+            </li>
+
+            <li class="sidebar-section-title">Fulfillment & Sales</li>
+            <li class="sidebar-nav-item {% if 'order' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="{% url 'dashboard:order_list' %}">
+                    <i data-lucide="shopping-cart" style="width: 18px; height: 18px;"></i>
+                    <span>Orders</span>
+                </a>
+            </li>
+            <li class="sidebar-nav-item {% if 'customer' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="{% url 'dashboard:customer_list' %}">
+                    <i data-lucide="users" style="width: 18px; height: 18px;"></i>
+                    <span>Customers</span>
+                </a>
+            </li>
+            <li class="sidebar-nav-item {% if 'coupon' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="{% url 'dashboard:coupon_list' %}">
+                    <i data-lucide="tag" style="width: 18px; height: 18px;"></i>
+                    <span>Coupons</span>
+                </a>
+            </li>
+            <li class="sidebar-nav-item {% if 'review' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="{% url 'dashboard:review_list' %}">
+                    <i data-lucide="message-square" style="width: 18px; height: 18px;"></i>
+                    <span>Reviews</span>
+                </a>
+            </li>
+
+            <li class="sidebar-section-title">Marketing & CMS</li>
+            <li class="sidebar-nav-item {% if 'banner' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="{% url 'dashboard:banner_list' %}">
+                    <i data-lucide="image" style="width: 18px; height: 18px;"></i>
+                    <span>Banners</span>
+                </a>
+            </li>
+            <li class="sidebar-nav-item {% if 'setting' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="{% url 'dashboard:settings' %}">
+                    <i data-lucide="sliders" style="width: 18px; height: 18px;"></i>
+                    <span>Store Settings</span>
+                </a>
+            </li>
+            <li class="sidebar-nav-item {% if 'audit' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="{% url 'dashboard:audit_log_list' %}">
+                    <i data-lucide="shield" style="width: 18px; height: 18px;"></i>
+                    <span>Audit Logs</span>
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <!-- Main Workspace -->
+    <div class="admin-main">
+        <!-- Topbar -->
+        <header class="admin-topbar">
+            <div class="admin-topbar-left">
+                <h2>{% block page_heading %}Dashboard Overview{% endblock %}</h2>
+            </div>
+
+            <div class="admin-topbar-right">
+                <!-- Theme Switcher -->
+                <button type="button" class="admin-theme-toggle" id="adminThemeToggleBtn" title="Toggle Light/Dark Theme" aria-label="Toggle dark/light theme">
+                    <i data-lucide="sun" class="sun-icon" style="width: 17px; height: 17px;"></i>
+                    <i data-lucide="moon" class="moon-icon" style="width: 17px; height: 17px;"></i>
+                </button>
+
+                <a href="{{ STOREFRONT_URL|default:'http://127.0.0.1:8000/' }}" target="_blank" class="admin-btn admin-btn-outline admin-btn-sm">
+                    <i data-lucide="external-link" style="width: 14px; height: 14px;"></i> View Storefront
+                </a>
+                <div style="font-size: 0.85rem; color: var(--admin-text-main); font-weight: 600;">
+                    {{ user.email }}
+                </div>
+                <form action="{% url 'accounts:logout' %}" method="POST" style="margin: 0;">
+                    {% csrf_token %}
+                    <button type="submit" class="admin-btn admin-btn-outline admin-btn-sm" style="color: #C62828;">
+                        <i data-lucide="log-out" style="width: 14px; height: 14px;"></i> Logout
+                    </button>
+                </form>
+            </div>
+        </header>
+
+        <!-- Messages Toast -->
+        {% if messages %}
+        <div style="padding: 16px 32px 0;">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }}" style="padding: 12px 18px; font-size: 0.875rem; border-radius: 6px; margin-bottom: 10px; background: #FFF; border: 1px solid var(--admin-border);">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Content Body -->
+        <div class="admin-content-wrap">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <!-- Admin JS -->
+    <script src="{% static 'js/admin.js' %}"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

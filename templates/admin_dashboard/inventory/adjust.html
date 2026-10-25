@@ -1,0 +1,78 @@
+{% extends 'admin_dashboard/base.html' %}
+{% load static %}
+
+{% block page_heading %}Adjust Stock: {{ item.sku }}{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 24px;">
+    <a href="{% url 'dashboard:inventory_list' %}" class="admin-btn admin-btn-outline admin-btn-sm">&larr; Back to Inventory</a>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 32px; align-items: start;">
+    <!-- Adjustment Form -->
+    <div class="admin-card">
+        <div class="admin-card-header">
+            <h3 class="admin-card-title">Stock Adjustment Form</h3>
+        </div>
+        <div style="padding: 24px;">
+            <div style="background: #FAFAFA; border-radius: var(--admin-radius); padding: 16px; margin-bottom: 20px; font-size: 0.9rem;">
+                <div>Item: <strong>{{ item.product.name }}</strong></div>
+                <div>SKU: <code>{{ item.sku }}</code></div>
+                <div style="margin-top: 8px;">Current On Hand: <strong>{{ item.quantity_on_hand }}</strong></div>
+                <div>Currently Reserved: <strong>{{ item.reserved_quantity }}</strong></div>
+                <div>Current Available: <strong style="color: #2E7D32;">{{ item.available_quantity }}</strong></div>
+            </div>
+
+            <form method="POST">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label class="form-label">Quantity Delta (e.g. +20 for delivery receipt, -5 for damage)</label>
+                    {{ form.quantity_delta }}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Reason / Audit Trail Note</label>
+                    {{ form.reason }}
+                </div>
+
+                <button type="submit" class="admin-btn admin-btn-primary" style="width: 100%;">
+                    Record Inventory Adjustment
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Movement Ledger -->
+    <div class="admin-card">
+        <div class="admin-card-header">
+            <h3 class="admin-card-title">Recent Stock Movement Ledger</h3>
+        </div>
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Delta</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in movements %}
+                    <tr>
+                        <td><small style="color: var(--admin-text-muted);">{{ m.created_at|date:"M d, H:i" }}</small></td>
+                        <td><span class="status-pill status-active">{{ m.movement_type }}</span></td>
+                        <td><strong style="{% if m.quantity > 0 %}color: #2E7D32;{% else %}color: #C62828;{% endif %}">{{ m.quantity:+d }}</strong></td>
+                        <td>{{ m.notes }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; color: var(--admin-text-muted); padding: 30px;">No historical movements logged.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

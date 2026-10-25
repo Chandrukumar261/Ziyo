@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Request Return — Order #{{ order.order_number }}{% endblock %}
+
+{% block content %}
+<div class="ziyo-container ziyo-section">
+    <div style="max-width: 560px; margin: 0 auto; background: var(--bg-surface); padding: 40px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); box-shadow: var(--shadow-sm);">
+        <h1 style="font-size: 1.85rem; margin-bottom: 8px;">Request Return / Refund</h1>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 24px;">
+            Order Reference: <strong>#{{ order.order_number }}</strong> &bull; Total: ₹{{ order.total_amount }}
+        </p>
+
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label class="form-label">Reason for Return</label>
+                {{ form.reason }}
+            </div>
+
+            <div style="display: flex; gap: 14px; margin-top: 24px;">
+                <button type="submit" class="btn btn-primary">Submit Return Request</button>
+                <a href="{% url 'orders:order_detail' order.order_number %}" class="btn btn-outline">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

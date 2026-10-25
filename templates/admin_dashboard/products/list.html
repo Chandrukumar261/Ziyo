@@ -1,0 +1,87 @@
+{% extends 'admin_dashboard/base.html' %}
+{% load static %}
+
+{% block page_heading %}Product Management{% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <div class="admin-card-header">
+        <div style="display: flex; gap: 16px; align-items: center;">
+            <form method="GET" style="display: flex; gap: 8px;">
+                <input type="text" name="q" placeholder="Search product name, SKU..." value="{{ query }}" class="form-control" style="padding: 7px 12px; font-size: 0.85rem; width: 260px;">
+                <button type="submit" class="admin-btn admin-btn-outline admin-btn-sm">Search</button>
+            </form>
+        </div>
+        <a href="{% url 'dashboard:product_create' %}" class="admin-btn admin-btn-primary admin-btn-sm">
+            <i data-lucide="plus" style="width: 14px; height: 14px;"></i> Add New Product
+        </a>
+    </div>
+
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Category</th>
+                    <th>SKU</th>
+                    <th>Price</th>
+                    <th>Stock</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in page_obj %}
+                <tr>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <img src="{{ p.primary_image_url }}" alt="{{ p.name }}" style="width: 44px; height: 44px; object-fit: cover; border-radius: 6px;">
+                            <div>
+                                <strong>{{ p.name }}</strong>
+                                {% if p.is_trending %}<span class="badge" style="background: #FEF3C7; color: #92400E; font-size: 0.65rem;">Trending</span>{% endif %}
+                            </div>
+                        </div>
+                    </td>
+                    <td>{{ p.category.name }}</td>
+                    <td><code>{{ p.sku }}</code></td>
+                    <td><strong>₹{{ p.price }}</strong></td>
+                    <td>
+                        {% if p.inventory %}
+                        <span style="font-weight: 600; {% if p.inventory.is_low_stock %}color: #C62828;{% else %}color: #2E7D32;{% endif %}">
+                            {{ p.inventory.available_quantity }} units
+                        </span>
+                        {% else %}
+                        <span style="color: var(--admin-text-muted);">No stock record</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if p.is_active %}
+                        <span class="status-pill status-active">Active</span>
+                        {% else %}
+                        <span class="status-pill status-cancelled">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 6px;">
+                            <a href="{% url 'dashboard:product_edit' p.id %}" class="admin-btn admin-btn-outline admin-btn-sm" title="Edit Product">
+                                <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i>
+                            </a>
+                            <a href="{% url 'dashboard:product_images' p.id %}" class="admin-btn admin-btn-outline admin-btn-sm" title="Manage Gallery">
+                                <i data-lucide="image" style="width: 14px; height: 14px;"></i>
+                            </a>
+                            <a href="{% url 'dashboard:product_delete' p.id %}" class="admin-btn admin-btn-outline admin-btn-sm" style="color: #C62828;" title="Archive">
+                                <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="text-align: center; color: var(--admin-text-muted); padding: 40px;">No products match your criteria.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

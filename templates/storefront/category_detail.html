@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ category.name }} — Ziyo{% endblock %}
+
+{% block content %}
+<div class="ziyo-container ziyo-section">
+    <!-- Category Header Banner -->
+    <div style="background: var(--bg-subtle); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 48px; margin-bottom: 40px; text-align: center;">
+        <span style="font-size: 0.8rem; font-weight: 700; color: var(--accent-primary); text-transform: uppercase; letter-spacing: 0.08em;">Curated Department</span>
+        <h1 style="font-size: 2.4rem; margin: 8px 0 12px;">{{ category.name }}</h1>
+        {% if category.description %}
+        <p style="color: var(--text-secondary); max-width: 560px; margin: 0 auto; font-size: 0.95rem;">
+            {{ category.description }}
+        </p>
+        {% endif %}
+    </div>
+
+    <!-- Subcategories if any -->
+    {% if category.children.exists %}
+    <div style="display: flex; gap: 12px; margin-bottom: 32px; overflow-x: auto; padding-bottom: 10px;">
+        {% for sub in category.children.all %}
+        <a href="{{ sub.get_absolute_url }}" class="btn btn-outline btn-sm" style="background: var(--bg-surface);">
+            {{ sub.name }}
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Products Grid -->
+    {% if products %}
+    <div class="product-grid">
+        {% for product in products %}
+        <div class="product-card">
+            <div class="card-media">
+                <a href="{{ product.get_absolute_url }}">
+                    <img src="{{ product.primary_image_url }}" alt="{{ product.name }}" loading="lazy">
+                </a>
+            </div>
+            <div class="card-info">
+                <a href="{{ product.get_absolute_url }}" class="card-title">{{ product.name }}</a>
+                <div class="card-price-row">
+                    <span class="price-current">₹{{ product.price }}</span>
+                    {% if product.compare_at_price and product.compare_at_price > product.price %}
+                    <span class="price-original">₹{{ product.compare_at_price }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 60px 20px; background: var(--bg-surface); border-radius: var(--radius-md);">
+        <p style="color: var(--text-muted);">No products currently cataloged under this department.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

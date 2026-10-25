@@ -1,0 +1,61 @@
+{% extends 'admin_dashboard/base.html' %}
+{% load static %}
+
+{% block page_heading %}Inventory &amp; Stock Supervision{% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <div class="admin-card-header">
+        <h3 class="admin-card-title">Live Stock Ledger ({{ items.count }})</h3>
+    </div>
+
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Product / Variant</th>
+                    <th>SKU</th>
+                    <th>Quantity on Hand</th>
+                    <th>Reserved (Pending Orders)</th>
+                    <th>Available to Purchase</th>
+                    <th>Threshold Alert</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>
+                        <strong>{% if item.variant %}{{ item.variant.product.name }} &bull; {{ item.variant.name }}{% elif item.product %}{{ item.product.name }}{% else %}Standalone SKU{% endif %}</strong>
+                    </td>
+                    <td><code>{{ item.sku }}</code></td>
+                    <td><strong>{{ item.quantity_on_hand }}</strong></td>
+                    <td>{{ item.reserved_quantity }}</td>
+                    <td>
+                        <strong style="{% if item.is_low_stock %}color: #C62828;{% else %}color: #2E7D32;{% endif %}">
+                            {{ item.available_quantity }}
+                        </strong>
+                    </td>
+                    <td>
+                        {% if item.is_low_stock %}
+                        <span class="badge" style="background: #FEE2E2; color: #991B1B;">Low Stock (≤ {{ item.low_stock_threshold }})</span>
+                        {% else %}
+                        <span style="color: var(--admin-text-muted);">Normal (min {{ item.low_stock_threshold }})</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'dashboard:inventory_adjust' item.id %}" class="admin-btn admin-btn-outline admin-btn-sm">
+                            <i data-lucide="sliders" style="width: 14px; height: 14px;"></i> Adjust Stock
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="text-align: center; color: var(--admin-text-muted); padding: 40px;">No inventory items registered.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

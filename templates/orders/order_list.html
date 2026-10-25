@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Order History — Ziyo{% endblock %}
+
+{% block content %}
+<div class="ziyo-container ziyo-section">
+    <div style="max-width: 900px; margin: 0 auto;">
+        <h1 style="font-size: 2.25rem; margin-bottom: 32px;">Order History</h1>
+
+        {% if orders %}
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+            {% for ord in orders %}
+            <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 24px; box-shadow: var(--shadow-sm);">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-subtle); padding-bottom: 14px; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <span style="font-size: 0.8rem; color: var(--text-muted);">Placed on {{ ord.created_at|date:"M d, Y" }}</span>
+                        <h3 style="font-size: 1.15rem; margin-top: 2px;">#{{ ord.order_number }}</h3>
+                    </div>
+                    <div style="text-align: right;">
+                        <span class="status-pill status-{{ ord.status|lower }}">{{ ord.status }}</span>
+                        <div style="font-size: 1.15rem; font-weight: 700; margin-top: 4px;">₹{{ ord.total_amount }}</div>
+                    </div>
+                </div>
+
+                <!-- Snapshot items summary -->
+                <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; font-size: 0.875rem;">
+                    {% for item in ord.items.all %}
+                    <div style="display: flex; justify-content: space-between; color: var(--text-secondary);">
+                        <span>{{ item.quantity }}x {{ item.product_name }}{% if item.variant_name %} ({{ item.variant_name }}){% endif %}</span>
+                        <span>₹{{ item.line_total }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid var(--border-subtle); padding-top: 14px;">
+                    <a href="{% url 'orders:order_detail' ord.order_number %}" class="btn btn-outline btn-sm">
+                        View Details &rsaquo;
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 60px 20px; background: var(--bg-surface); border-radius: var(--radius-md);">
+            <i data-lucide="package-open" style="width: 48px; height: 48px; color: var(--text-muted); margin-bottom: 16px;"></i>
+            <h3 style="font-size: 1.25rem; margin-bottom: 8px;">No orders found</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 20px;">You haven't placed any orders with Ziyo yet.</p>
+            <a href="{% url 'catalog:product_list' %}" class="btn btn-primary btn-sm">Explore Collection</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

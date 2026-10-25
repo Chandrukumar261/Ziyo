@@ -1,0 +1,61 @@
+{% extends 'admin_dashboard/base.html' %}
+{% load static %}
+
+{% block page_heading %}Review Moderation{% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <div class="admin-card-header">
+        <h3 class="admin-card-title">All Customer Reviews ({{ reviews.count }})</h3>
+    </div>
+
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Customer</th>
+                    <th>Rating</th>
+                    <th>Headline &amp; Feedback</th>
+                    <th>Date</th>
+                    <th>Moderation Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in reviews %}
+                <tr>
+                    <td><strong>{{ r.product.name }}</strong></td>
+                    <td>{{ r.user.full_name }}<br><small style="color: var(--admin-text-muted);">{{ r.user.email }}</small></td>
+                    <td><strong style="color: #E5A93C;">{{ r.rating }} ★</strong></td>
+                    <td style="max-width: 320px;">
+                        <strong>{{ r.title }}</strong>
+                        <p style="color: var(--admin-text-muted); font-size: 0.8rem; margin-top: 2px;">{{ r.comment }}</p>
+                    </td>
+                    <td><small style="color: var(--admin-text-muted);">{{ r.created_at|date:"M d, Y" }}</small></td>
+                    <td>
+                        {% if r.is_approved %}
+                        <span class="status-pill status-active">Approved</span>
+                        {% else %}
+                        <span class="status-pill status-cancelled">Hidden / Unapproved</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <form action="{% url 'dashboard:review_toggle' r.id %}" method="POST">
+                            {% csrf_token %}
+                            <button type="submit" class="admin-btn admin-btn-outline admin-btn-sm">
+                                {% if r.is_approved %}Hide Review{% else %}Approve Review{% endif %}
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="text-align: center; color: var(--admin-text-muted); padding: 40px;">No customer reviews submitted.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

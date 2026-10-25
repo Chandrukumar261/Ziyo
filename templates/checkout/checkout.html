@@ -1,0 +1,328 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Checkout — Ziyo{% endblock %}
+
+{% block content %}
+<div class="ziyo-container ziyo-section">
+    <div style="max-width: 1040px; margin: 0 auto;">
+        <h1 style="font-size: 2.25rem; margin-bottom: 32px;">Secure Checkout</h1>
+
+        <div style="display: grid; grid-template-columns: 1fr 380px; gap: 48px; align-items: start;">
+            <!-- Left: Contact & Shipping Information Form -->
+            <div>
+                <!-- Saved Address Selection for Authenticated Customer -->
+                {% if saved_addresses %}
+                <div style="background: var(--bg-surface); padding: 24px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); margin-bottom: 24px;">
+                    <h3 style="font-size: 1.1rem; margin-bottom: 14px;">Select Saved Address</h3>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        {% for addr in saved_addresses %}
+                        <label style="display: flex; gap: 12px; align-items: flex-start; padding: 12px; border: 1px solid var(--border-medium); border-radius: var(--radius-sm); cursor: pointer;">
+                            <input type="radio" name="selected_saved_address" class="form-check-input" style="margin-top: 3px;"
+                                   data-name="{{ addr.full_name }}" data-phone="{{ addr.phone }}"
+                                   data-line1="{{ addr.address_line_1 }}" data-line2="{{ addr.address_line_2 }}"
+                                   data-city="{{ addr.city }}" data-state="{{ addr.state }}" data-zip="{{ addr.postal_code }}"
+                                   {% if addr.is_default %}checked{% endif %}
+                                   onchange="applySavedAddress(this)">
+                            <div style="font-size: 0.875rem;">
+                                <strong>{{ addr.full_name }}</strong> &bull; {{ addr.phone }}<br>
+                                <span style="color: var(--text-secondary);">{{ addr.address_line_1 }}, {% if addr.address_line_2 %}{{ addr.address_line_2 }}, {% endif %}{{ addr.city }}, {{ addr.state }} - {{ addr.postal_code }}</span>
+                            </div>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Shipping Address Form -->
+                <div style="background: var(--bg-surface); padding: 32px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+                    <h2 style="font-size: 1.3rem; margin-bottom: 20px;">Shipping & Contact Information</h2>
+
+                    <form method="POST" id="checkoutForm">
+                        {% csrf_token %}
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                            <div class="form-group">
+                                <label class="form-label">Email Address *</label>
+                                {{ form.email }}
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Phone Number *</label>
+                                {{ form.phone }}
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Full Name *</label>
+                            {{ form.full_name }}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Country / Region *</label>
+                            {{ form.country }}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Address Line 1 *</label>
+                            {{ form.address_line_1 }}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Address Line 2 (Apartment, Suite, Unit)</label>
+                            {{ form.address_line_2 }}
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 16px;">
+                            <div class="form-group">
+                                <label class="form-label">City *</label>
+                                {{ form.city }}
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">State / Province *</label>
+                                {{ form.state }}
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" id="postalCodeLabel">PIN / Postal Code *</label>
+                                {{ form.postal_code }}
+                                <small id="postalCodeHint" style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-top: 4px;">6-digit code for India</small>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Special Delivery Instructions (Optional)</label>
+                            {{ form.customer_notes }}
+                        </div>
+
+                        <!-- Payment Method Selection -->
+                        <div style="margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--border-subtle);">
+                            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
+                                <h3 style="font-size: 1.15rem; font-weight: 700; margin: 0;">Payment Method</h3>
+                                <span style="font-size: 0.75rem; color: #047857; background: #ECFDF5; padding: 3px 8px; border-radius: 999px; font-weight: 600;">
+                                    🔒 256-Bit SSL Encrypted
+                                </span>
+                            </div>
+                            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 18px;">
+                                Choose your preferred payment option:
+                            </p>
+
+                            <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px;">
+                                <!-- 1. Credit / Debit Card -->
+                                <label class="payment-method-box" id="box-card" style="display: flex; gap: 14px; align-items: flex-start; padding: 18px; border: 2px solid var(--accent-primary); border-radius: var(--radius-sm); cursor: pointer; background: var(--bg-surface); transition: all 0.2s;">
+                                    <input type="radio" name="payment_method" value="RAZORPAY_CARD" class="form-check-input" style="margin-top: 4px;" checked onchange="updatePaymentMethod(this)">
+                                    <div style="flex: 1;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                            <strong style="font-size: 0.95rem;">Credit Card / Debit Card</strong>
+                                            <div style="display: flex; gap: 6px; align-items: center;">
+                                                <span class="badge" style="background: #EEF2FF; color: #4338CA; font-size: 0.72rem; font-weight: 600;">Razorpay Verified</span>
+                                            </div>
+                                        </div>
+                                        <p style="color: var(--text-secondary); font-size: 0.82rem; margin: 0; line-height: 1.4;">
+                                            Visa, MasterCard, RuPay, American Express, Diners Club & Maestro. Safe 3D-Secure OTP verification.
+                                        </p>
+                                    </div>
+                                </label>
+
+                                <!-- 2. UPI / Net Banking -->
+                                <label class="payment-method-box" id="box-upi" style="display: flex; gap: 14px; align-items: flex-start; padding: 18px; border: 1px solid var(--border-medium); border-radius: var(--radius-sm); cursor: pointer; background: var(--bg-surface); transition: all 0.2s;">
+                                    <input type="radio" name="payment_method" value="RAZORPAY_UPI" class="form-check-input" style="margin-top: 4px;" onchange="updatePaymentMethod(this)">
+                                    <div style="flex: 1;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                            <strong style="font-size: 0.95rem;">UPI / Net Banking / Wallets</strong>
+                                            <span class="badge" style="background: #ECFDF5; color: #047857; font-size: 0.72rem; font-weight: 600;">Zero Fee</span>
+                                        </div>
+                                        <p style="color: var(--text-secondary); font-size: 0.82rem; margin: 0; line-height: 1.4;">
+                                            Google Pay, PhonePe, Paytm, Cred, BHIM UPI & all Indian NetBanking accounts.
+                                        </p>
+                                    </div>
+                                </label>
+
+                                <!-- 3. Cash on Delivery (COD) -->
+                                <label class="payment-method-box" id="box-cod" style="display: flex; gap: 14px; align-items: flex-start; padding: 18px; border: 1px solid var(--border-medium); border-radius: var(--radius-sm); cursor: pointer; background: var(--bg-surface); transition: all 0.2s;">
+                                    <input type="radio" name="payment_method" value="COD" class="form-check-input" style="margin-top: 4px;" onchange="updatePaymentMethod(this)">
+                                    <div style="flex: 1;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                            <strong style="font-size: 0.95rem;">Cash on Delivery (COD)</strong>
+                                            <span class="badge" style="background: #FEF3C7; color: #B45309; font-size: 0.72rem; font-weight: 600;">Pay on Arrival</span>
+                                        </div>
+                                        <p style="color: var(--text-secondary); font-size: 0.82rem; margin: 0; line-height: 1.4;">
+                                            Pay via cash or doorstep QR scan when your parcel arrives. No upfront payment required.
+                                        </p>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-block" style="padding: 16px; font-size: 1rem; margin-top: 10px;" id="btnSubmitOrder">
+                            Proceed to Secure Payment &rarr;
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Right: Order Items & Pricing Review -->
+            <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 28px; position: sticky; top: 100px;">
+                <h3 style="font-size: 1.15rem; margin-bottom: 18px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 12px;">Your Order</h3>
+
+                <!-- Items list -->
+                <div style="display: flex; flex-direction: column; gap: 14px; max-height: 260px; overflow-y: auto; margin-bottom: 20px; padding-right: 4px;">
+                    {% for item in items %}
+                    <div style="display: flex; gap: 12px; align-items: center; font-size: 0.875rem;">
+                        <img src="{{ item.product.primary_image_url }}" alt="{{ item.product.name }}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px;">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; line-height: 1.3;">{{ item.product.name }}</div>
+                            <div style="color: var(--text-muted); font-size: 0.75rem;">Qty: {{ item.quantity }}{% if item.variant %} &bull; {{ item.variant.name }}{% endif %}</div>
+                        </div>
+                        <div style="font-weight: 700;">₹{{ item.line_total }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Server Totals -->
+                <div style="display: flex; flex-direction: column; gap: 10px; font-size: 0.9rem; border-top: 1px solid var(--border-subtle); padding-top: 16px; margin-bottom: 16px;">
+                    <div style="display: flex; justify-content: space-between; color: var(--text-secondary);">
+                        <span>Subtotal</span>
+                        <span>₹{{ subtotal }}</span>
+                    </div>
+
+                    {% if discount_amount > 0 %}
+                    <div style="display: flex; justify-content: space-between; color: var(--badge-sale); font-weight: 600;">
+                        <span>Coupon Discount</span>
+                        <span>-₹{{ discount_amount }}</span>
+                    </div>
+                    {% endif %}
+
+                    <div style="display: flex; justify-content: space-between; color: var(--text-secondary);">
+                        <span>Shipping</span>
+                        <span>{% if shipping_fee == 0 %}<strong style="color: #2E7D32;">FREE</strong>{% else %}₹{{ shipping_fee }}{% endif %}</span>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; color: var(--text-secondary);">
+                        <span>Taxes (GST {{ tax_percentage }}%)</span>
+                        <span>₹{{ tax_amount }}</span>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: baseline; border-top: 1px solid var(--border-subtle); padding-top: 14px;">
+                    <span style="font-size: 1.1rem; font-weight: 700;">Total to Pay</span>
+                    <span style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary);">₹{{ total }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function applySavedAddress(radio) {
+    if (!radio.checked) return;
+    document.querySelector('input[name="full_name"]').value = radio.dataset.name || '';
+    document.querySelector('input[name="phone"]').value = radio.dataset.phone || '';
+    document.querySelector('input[name="address_line_1"]').value = radio.dataset.line1 || '';
+    document.querySelector('input[name="address_line_2"]').value = radio.dataset.line2 || '';
+    document.querySelector('input[name="city"]').value = radio.dataset.city || '';
+    document.querySelector('input[name="state"]').value = radio.dataset.state || '';
+    document.querySelector('input[name="postal_code"]').value = radio.dataset.zip || '';
+}
+
+function updatePaymentMethod(radio) {
+    const boxes = {
+        'RAZORPAY_CARD': document.getElementById('box-card'),
+        'RAZORPAY_UPI': document.getElementById('box-upi'),
+        'COD': document.getElementById('box-cod'),
+    };
+
+    for (const [key, element] of Object.entries(boxes)) {
+        if (!element) continue;
+        if (key === radio.value) {
+            element.style.borderColor = 'var(--accent-primary)';
+            element.style.borderWidth = '2px';
+            element.style.boxShadow = '0 0 0 1px var(--accent-primary)';
+        } else {
+            element.style.borderColor = 'var(--border-medium)';
+            element.style.borderWidth = '1px';
+            element.style.boxShadow = 'none';
+        }
+    }
+
+    const submitBtn = document.getElementById('btnSubmitOrder');
+    if (radio.value === 'COD') {
+        submitBtn.innerHTML = 'Confirm Cash on Delivery Order &rarr;';
+        submitBtn.style.background = '#8C7051';
+    } else if (radio.value === 'RAZORPAY_CARD') {
+        submitBtn.innerHTML = 'Pay with Credit / Debit Card &rarr;';
+        submitBtn.style.background = '';
+    } else {
+        submitBtn.innerHTML = 'Proceed to UPI / NetBanking &rarr;';
+        submitBtn.style.background = '';
+    }
+}
+
+// Country & Pincode auto-helper
+document.addEventListener('DOMContentLoaded', function() {
+    const countrySelect = document.getElementById('id_country');
+    const postalCodeInput = document.getElementById('id_postal_code');
+    const postalCodeLabel = document.getElementById('postalCodeLabel');
+    const postalCodeHint = document.getElementById('postalCodeHint');
+    const cityInput = document.querySelector('input[name="city"]');
+    const stateInput = document.querySelector('input[name="state"]');
+
+    function updateCountryUI() {
+        if (!countrySelect) return;
+        const code = countrySelect.value;
+        if (code === 'IN') {
+            if (postalCodeLabel) postalCodeLabel.textContent = 'PIN Code *';
+            if (postalCodeInput) postalCodeInput.placeholder = 'e.g. 560001';
+            if (postalCodeHint) postalCodeHint.textContent = '6-digit Indian Postal PIN';
+        } else if (code === 'US') {
+            if (postalCodeLabel) postalCodeLabel.textContent = 'ZIP Code *';
+            if (postalCodeInput) postalCodeInput.placeholder = 'e.g. 90210';
+            if (postalCodeHint) postalCodeHint.textContent = '5-digit US ZIP';
+        } else if (code === 'GB') {
+            if (postalCodeLabel) postalCodeLabel.textContent = 'Postcode *';
+            if (postalCodeInput) postalCodeInput.placeholder = 'e.g. SW1A 1AA';
+            if (postalCodeHint) postalCodeHint.textContent = 'UK Postcode';
+        } else {
+            if (postalCodeLabel) postalCodeLabel.textContent = 'Postal / ZIP Code *';
+            if (postalCodeInput) postalCodeInput.placeholder = 'Postal Code';
+            if (postalCodeHint) postalCodeHint.textContent = 'Standard international postal format';
+        }
+    }
+
+    if (countrySelect) {
+        countrySelect.addEventListener('change', updateCountryUI);
+        updateCountryUI();
+    }
+
+    // Auto-detect metro cities for major Indian PIN prefixes if fields are empty
+    if (postalCodeInput) {
+        postalCodeInput.addEventListener('input', function() {
+            if (countrySelect && countrySelect.value !== 'IN') return;
+            const pin = this.value.trim();
+            if (pin.length === 6) {
+                const prefix3 = pin.substring(0, 3);
+                const prefix2 = pin.substring(0, 2);
+                if (cityInput && !cityInput.value) {
+                    if (prefix3 === '110') { cityInput.value = 'New Delhi'; }
+                    else if (['400', '401'].includes(prefix3)) { cityInput.value = 'Mumbai'; }
+                    else if (['560', '561'].includes(prefix3)) { cityInput.value = 'Bengaluru'; }
+                    else if (['600', '601'].includes(prefix3)) { cityInput.value = 'Chennai'; }
+                    else if (['700', '701'].includes(prefix3)) { cityInput.value = 'Kolkata'; }
+                    else if (['500', '501'].includes(prefix3)) { cityInput.value = 'Hyderabad'; }
+                    else if (['380', '382'].includes(prefix3)) { cityInput.value = 'Ahmedabad'; }
+                    else if (['411', '412'].includes(prefix3)) { cityInput.value = 'Pune'; }
+                }
+                if (stateInput && !stateInput.value) {
+                    if (prefix2 === '11') { stateInput.value = 'Delhi'; }
+                    else if (['40', '41', '42', '43', '44'].includes(prefix2)) { stateInput.value = 'Maharashtra'; }
+                    else if (['56', '57', '58', '59'].includes(prefix2)) { stateInput.value = 'Karnataka'; }
+                    else if (['60', '61', '62', '63', '64'].includes(prefix2)) { stateInput.value = 'Tamil Nadu'; }
+                    else if (['70', '71', '72', '73', '74'].includes(prefix2)) { stateInput.value = 'West Bengal'; }
+                    else if (['50', '51', '52', '53'].includes(prefix2)) { stateInput.value = 'Telangana / Andhra Pradesh'; }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

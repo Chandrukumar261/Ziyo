@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ product.name }} — Ziyo{% endblock %}
+{% block meta_description %}{{ product.short_description|default:product.description|truncatewords:25 }}{% endblock %}
+
+{% block content %}
+<div class="ziyo-container ziyo-section">
+    <!-- Breadcrumbs -->
+    <div style="font-size: 0.8125rem; color: var(--text-muted); margin-bottom: 24px;">
+        <a href="{% url 'catalog:home' %}">Home</a> &rsaquo;
+        <a href="{{ product.category.get_absolute_url }}">{{ product.category.name }}</a> &rsaquo;
+        <span>{{ product.name }}</span>
+    </div>
+
+    <!-- Product Layout Grid -->
+    <div style="display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 56px; align-items: start; margin-bottom: 80px;">
+        <!-- Left: Gallery -->
+        <div>
+            <div style="background-color: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); overflow: hidden; position: relative; padding-top: 100%;">
+                <img id="mainProductImage" src="{{ product.primary_image_url }}" alt="{{ product.name }}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
+            </div>
+
+            <!-- Thumbnails Strip -->
+            {% if images.count > 1 %}
+            <div style="display: flex; gap: 14px; margin-top: 16px; overflow-x: auto;">
+                {% for img in images %}
+                <a href="#" class="gallery-thumb {% if forloop.first %}active{% endif %}" data-full-img="{{ img.image.url }}" style="width: 80px; height: 80px; border-radius: var(--radius-sm); border: 1px solid var(--border-medium); overflow: hidden; flex-shrink: 0;">
+                    <img src="{{ img.image.url }}" alt="{{ img.alt_text|default:product.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                </a>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Right: Purchasing Details -->
+        <div>
+            <span style="font-size: 0.8125rem; font-weight: 700; color: var(--accent-primary); text-transform: uppercase; letter-spacing: 0.06em;">
+                {{ product.category.name }}
+            </span>
+            <h1 style="font-size: 2.4rem; margin: 8px 0 12px; line-height: 1.2;">{{ product.name }}</h1>
+
+            <!-- Ratings Summary -->
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 20px;">
+                <div style="display: flex; color: #E5A93C;">
+                    <i data-lucide="star" style="width: 16px; height: 16px; fill: currentColor;"></i>
+                </div>
+                <span style="font-weight: 700; font-size: 0.9rem;">{{ product.average_rating }}</span>
+                <span style="color: var(--text-muted); font-size: 0.85rem;">({{ product.review_count }} review{{ product.review_count|pluralize }})</span>
+                <span style="color: var(--border-medium);">&bull;</span>
+                <span style="color: var(--text-muted); font-size: 0.85rem;">SKU: {{ product.sku }}</span>
+            </div>
+
+            <!-- Pricing Row -->
+            <div style="display: flex; align-items: baseline; gap: 14px; margin-bottom: 24px;">
+                <span class="price-current" id="productDisplayPrice" style="font-size: 2rem;">₹{{ product.price }}</span>
+                {% if product.compare_at_price and product.compare_at_price > product.price %}
+                <span class="price-original" style="font-size: 1.2rem;">₹{{ product.compare_at_price }}</span>
+                <span class="badge badge-sale" style="font-size: 0.8rem;">Save {{ product.discount_percentage }}%</span>
+                {% endif %}
+            </div>
+
+            <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.7; margin-bottom: 28px;">
+                {{ product.short_description|default:product.description }}
+            </p>
+
+            <!-- Purchasing Form -->
+            <form action="{% url 'cart:add_to_cart' product.id %}" method="POST" style="margin-bottom: 32px;">
+                {% csrf_token %}
+
+                <!-- Variants Dropdown if present -->
+                {% if variants %}
+                <div class="form-group">
+                    <label class="form-label">Select Option / Variant</label>
+                    <select name="variant_id" id="variantSelector" class="form-select" style="max-width: 320px;">
+                        {% for variant in variants %}
+                        <option value="{{ variant.id }}" data-price="{{ variant.price }}">
+                            {{ variant.name }} &mdash; ₹{{ variant.price }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+
+                <!-- Quantity & Add to Cart -->
+                <div style="display: flex; gap: 16px; align-items: center; margin-top: 24px;">
+                    <div class="qty-stepper" style="display: flex; align-items: center; border: 1px solid var(--border-medium); border-radius: var(--radius-pill); background: var(--bg-surface); padding: 4px;">
+                        <button type="button" class="icon-btn qty-decrement" style="width: 32px; height: 32px;"><i data-lucide="minus" style="width: 14px; height: 14px;"></i></button>
+                        <input type="number" name="quantity" value="1" min="1" max="99" style="width: 44px; text-align: center; border: none; background: transparent; font-weight: 700; outline: none;">
+                        <button type="button" class="icon-btn qty-increment" style="width: 32px; height: 32px;"><i data-lucide="plus" style="width: 14px; height: 14px;"></i></button>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="flex: 1; padding: 14px 28px;">
+                        <i data-lucide="shopping-bag" style="width: 18px; height: 18px;"></i> Add to Shopping Bag
+                    </button>
+                </div>
+            </form>
+
+            <!-- Stock & Delivery Badges -->
+            <div style="background-color: var(--bg-subtle); padding: 18px; border-radius: var(--radius-md); display: flex; flex-direction: column; gap: 12px; font-size: 0.875rem;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <i data-lucide="check-circle" style="width: 18px; height: 18px; color: var(--badge-new);"></i>
+                    <span><strong>In Stock</strong> &bull; Ships within 24-48 business hours</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <i data-lucide="truck" style="width: 18px; height: 18px; color: var(--accent-primary);"></i>
+                    <span>Complimentary express delivery on orders over ₹1,499</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <i data-lucide="shield-check" style="width: 18px; height: 18px; color: var(--accent-primary);"></i>
+                    <span>Authentic craftsmanship &bull; 14-day hassle-free returns</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Long Description & Details Tabs -->
+    <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 40px; margin-bottom: 64px;">
+        <h2 style="font-size: 1.5rem; margin-bottom: 16px;">Product Specifications &amp; Care</h2>
+        <div style="color: var(--text-secondary); line-height: 1.8; font-size: 0.95rem;">
+            {{ product.description|linebreaks }}
+        </div>
+    </div>
+
+    <!-- Customer Reviews & Ratings Section -->
+    <div style="margin-bottom: 80px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 32px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 16px;">
+            <div>
+                <h2 style="font-size: 1.75rem;">Customer Impressions</h2>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 4px;">
+                    Average rating: <strong>{{ product.average_rating }} / 5.0</strong> across {{ product.review_count }} verified review{{ product.review_count|pluralize }}
+                </p>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start;">
+            <!-- Review List -->
+            <div>
+                {% for review in reviews %}
+                <div style="background: var(--bg-surface); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); margin-bottom: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <strong style="font-size: 0.95rem;">{{ review.title }}</strong>
+                        <span style="color: #E5A93C; font-weight: 700; font-size: 0.85rem;">{{ review.rating }} ★</span>
+                    </div>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 10px;">{{ review.comment }}</p>
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">
+                        By {{ review.user.first_name|default:"Verified Client" }} on {{ review.created_at|date:"M d, Y" }}
+                    </span>
+                </div>
+                {% empty %}
+                <p style="color: var(--text-muted); font-size: 0.95rem;">No reviews yet. Be the first to share your experience with this piece.</p>
+                {% endfor %}
+            </div>
+
+            <!-- Add Review Form -->
+            <div style="background: var(--bg-surface); padding: 28px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+                <h3 style="font-size: 1.2rem; margin-bottom: 16px;">Share Your Review</h3>
+                {% if user.is_authenticated %}
+                <form action="{% url 'catalog:add_review' product.slug %}" method="POST">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label class="form-label">Rating</label>
+                        {{ review_form.rating }}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Title</label>
+                        {{ review_form.title }}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Review</label>
+                        {{ review_form.comment }}
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm">Submit Review</button>
+                </form>
+                {% else %}
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 16px;">
+                    Please sign in to your Ziyo account to leave a verified review.
+                </p>
+                <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="btn btn-outline btn-sm">Sign In to Review</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Related Products -->
+    {% if related_products %}
+    <section class="ziyo-section">
+        <h2 style="font-size: 1.75rem; margin-bottom: 24px;">Complementary Objects</h2>
+        <div class="product-grid">
+            {% for rel in related_products %}
+            <div class="product-card">
+                <div class="card-media">
+                    <a href="{{ rel.get_absolute_url }}">
+                        <img src="{{ rel.primary_image_url }}" alt="{{ rel.name }}" loading="lazy">
+                    </a>
+                </div>
+                <div class="card-info">
+                    <span class="card-category">{{ rel.category.name }}</span>
+                    <a href="{{ rel.get_absolute_url }}" class="card-title">{{ rel.name }}</a>
+                    <div class="card-price-row">
+                        <span class="price-current">₹{{ rel.price }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+</div>
+{% endblock %}

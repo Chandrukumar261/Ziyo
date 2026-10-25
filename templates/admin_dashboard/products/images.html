@@ -1,0 +1,66 @@
+{% extends 'admin_dashboard/base.html' %}
+{% load static %}
+
+{% block page_heading %}Gallery Images for {{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="admin-card" style="max-width: 900px;">
+    <div class="admin-card-header">
+        <h3 class="admin-card-title">Manage Gallery Images</h3>
+        <a href="{% url 'dashboard:product_list' %}" class="admin-btn admin-btn-outline admin-btn-sm">&larr; Back to Products</a>
+    </div>
+
+    <div style="padding: 32px;">
+        <!-- Upload Form -->
+        <div style="background: #FAFAFA; border: 1px dashed var(--admin-border); border-radius: var(--admin-radius); padding: 24px; margin-bottom: 32px;">
+            <h4 style="font-size: 1rem; margin-bottom: 16px;">Upload Additional Image</h4>
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div style="display: grid; grid-template-columns: 2fr 1.5fr 1fr 1fr; gap: 14px; align-items: flex-end;">
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label">Image File *</label>
+                        {{ form.image }}
+                    </div>
+                    <div class="form-group" style="margin: 0;">
+                        <label class="form-label">Alt Text</label>
+                        {{ form.alt_text }}
+                    </div>
+                    <div class="form-check" style="margin-bottom: 8px;">
+                        {{ form.is_feature }}
+                        <label for="{{ form.is_feature.id_for_label }}">Primary</label>
+                    </div>
+                    <div>
+                        <button type="submit" class="admin-btn admin-btn-primary admin-btn-sm" style="width: 100%;">Upload</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Images Grid -->
+        <h4 style="font-size: 1rem; margin-bottom: 16px;">Current Gallery ({{ images.count }})</h4>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;">
+            {% for img in images %}
+            <div style="background: #FFF; border: 1px solid var(--admin-border); border-radius: var(--admin-radius); overflow: hidden; position: relative;">
+                {% if img.is_feature %}
+                <span class="badge" style="background: var(--admin-primary); color: #FFF; position: absolute; top: 8px; left: 8px; z-index: 2;">Primary</span>
+                {% endif %}
+                <div style="height: 140px; background: #F4EFEB;">
+                    <img src="{{ img.image.url }}" alt="{{ img.alt_text }}" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                <div style="padding: 10px; display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 0.75rem; color: var(--admin-text-muted);">Order: {{ img.sort_order }}</span>
+                    <form action="{% url 'dashboard:delete_product_image' img.id %}" method="POST">
+                        {% csrf_token %}
+                        <button type="submit" class="admin-btn admin-btn-outline admin-btn-sm" style="color: #C62828; padding: 3px 6px;">
+                            <i data-lucide="trash-2" style="width: 12px; height: 12px;"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% empty %}
+            <p style="grid-column: 1 / -1; color: var(--admin-text-muted);">No uploaded images for this product yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends 'admin_dashboard/base.html' %}
+{% load static %}
+
+{% block page_heading %}Customer: {{ customer.full_name }}{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 24px;">
+    <a href="{% url 'dashboard:customer_list' %}" class="admin-btn admin-btn-outline admin-btn-sm">&larr; Back to Customers</a>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 32px; align-items: start;">
+    <!-- Profile & Addresses -->
+    <div>
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h3 class="admin-card-title">Profile Snapshot</h3>
+            </div>
+            <div style="padding: 20px; font-size: 0.875rem;">
+                <div style="margin-bottom: 12px;"><strong>Name:</strong> {{ customer.full_name }}</div>
+                <div style="margin-bottom: 12px;"><strong>Email:</strong> {{ customer.email }}</div>
+                <div style="margin-bottom: 12px;"><strong>Phone:</strong> {{ customer.phone|default:"None" }}</div>
+                <div style="margin-bottom: 12px;"><strong>Date Registered:</strong> {{ customer.date_joined|date:"M d, Y" }}</div>
+                <div><strong>Role:</strong> <span class="badge" style="background: var(--admin-primary); color: #FFF;">{{ customer.role }}</span></div>
+            </div>
+        </div>
+
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h3 class="admin-card-title">Saved Shipping Addresses</h3>
+            </div>
+            <div style="padding: 20px; font-size: 0.85rem;">
+                {% for addr in customer.addresses.all %}
+                <div style="border-bottom: 1px solid var(--admin-border); padding-bottom: 10px; margin-bottom: 10px;">
+                    <strong>{{ addr.full_name }}</strong> {% if addr.is_default %}<span class="badge" style="background: #E0E7FF; color: #3730A3;">Default</span>{% endif %}<br>
+                    {{ addr.address_line_1 }}<br>
+                    {{ addr.city }}, {{ addr.state }} - {{ addr.postal_code }}
+                </div>
+                {% empty %}
+                <p style="color: var(--admin-text-muted);">No addresses added.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Orders Placed by Customer -->
+    <div class="admin-card">
+        <div class="admin-card-header">
+            <h3 class="admin-card-title">Order History ({{ customer.orders.count }})</h3>
+        </div>
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Order #</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Total</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ord in customer.orders.all %}
+                    <tr>
+                        <td><strong>#{{ ord.order_number }}</strong></td>
+                        <td>{{ ord.created_at|date:"M d, Y" }}</td>
+                        <td><span class="status-pill status-{{ ord.status|lower }}">{{ ord.status }}</span></td>
+                        <td><strong>₹{{ ord.total_amount }}</strong></td>
+                        <td>
+                            <a href="{% url 'dashboard:order_detail' ord.id %}" class="admin-btn admin-btn-outline admin-btn-sm">
+                                View Order
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: var(--admin-text-muted); padding: 30px;">No purchases recorded.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

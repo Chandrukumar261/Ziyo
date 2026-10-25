@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Order #{{ order.order_number }} — Ziyo{% endblock %}
+
+{% block content %}
+<div class="ziyo-container ziyo-section">
+    <div style="max-width: 900px; margin: 0 auto;">
+        <!-- Top Nav -->
+        <div style="margin-bottom: 24px;">
+            <a href="{% url 'orders:order_list' %}" style="font-size: 0.85rem; color: var(--accent-primary); font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i> Back to All Orders
+            </a>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 32px; flex-wrap: wrap; gap: 14px;">
+            <div>
+                <span style="font-size: 0.85rem; color: var(--text-muted);">Placed on {{ order.created_at|date:"F d, Y &bull; H:i" }}</span>
+                <h1 style="font-size: 2.25rem; margin-top: 4px;">Order #{{ order.order_number }}</h1>
+            </div>
+            <div>
+                <span class="status-pill status-{{ order.status|lower }}" style="font-size: 0.9rem; padding: 6px 14px;">
+                    {{ order.status }}
+                </span>
+            </div>
+        </div>
+
+        <!-- Tracking Bar if shipped -->
+        {% if order.tracking_number %}
+        <div style="background: #E8F0FE; border: 1px solid #C2D7FF; border-radius: var(--radius-sm); padding: 18px 24px; margin-bottom: 32px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <i data-lucide="truck" style="width: 24px; height: 24px; color: #1A73E8;"></i>
+                <div>
+                    <strong style="color: #1A73E8;">Package in Transit</strong>
+                    <div style="font-size: 0.85rem; color: var(--text-secondary);">Carrier: {{ order.carrier|default:"Express Courier" }} &bull; Tracking ID: <strong>{{ order.tracking_number }}</strong></div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div style="display: grid; grid-template-columns: 1fr 340px; gap: 32px; align-items: start;">
+            <!-- Left: Line items & Status timeline -->
+            <div>
+                <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 28px; margin-bottom: 32px;">
+                    <h3 style="font-size: 1.15rem; margin-bottom: 20px;">Order Items</h3>
+                    <div style="display: flex; flex-direction: column; gap: 16px;">
+                        {% for item in order.items.all %}
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-subtle); padding-bottom: 14px;">
+                            <div>
+                                <strong style="font-size: 0.95rem;">{{ item.product_name }}</strong>
+                                {% if item.variant_name %}<div style="color: var(--text-secondary); font-size: 0.85rem;">Option: {{ item.variant_name }}</div>{% endif %}
+                                <div style="color: var(--text-muted); font-size: 0.75rem;">Qty: {{ item.quantity }} &bull; SKU: {{ item.sku }}</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-weight: 700;">₹{{ item.line_total }}</div>
+                                <div style="font-size: 0.75rem; color: var(--text-muted);">₹{{ item.unit_price }} each</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Status History Timeline -->
+                <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 28px;">
+                    <h3 style="font-size: 1.15rem; margin-bottom: 20px;">Audit &amp; Status Timeline</h3>
+                    <div style="display: flex; flex-direction: column; gap: 16px; border-left: 2px solid var(--border-medium); padding-left: 20px; margin-left: 8px;">
+                        {% for history in order.status_history.all %}
+                        <div style="position: relative;">
+                            <div style="position: absolute; left: -26px; top: 3px; width: 10px; height: 10px; border-radius: 50%; background: var(--accent-primary);"></div>
+                            <strong style="font-size: 0.9rem;">{{ history.status }}</strong>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);">{{ history.created_at|date:"M d, Y &bull; H:i" }}</div>
+                            {% if history.notes %}
+                            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">{{ history.notes }}</p>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Shipping info & Financial summary -->
+            <div>
+                <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 24px; margin-bottom: 24px;">
+                    <h4 style="font-size: 1rem; margin-bottom: 12px;">Delivery Address</h4>
+                    <p style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6;">
+                        <strong>{{ order.shipping_full_name }}</strong><br>
+                        {{ order.shipping_address_line_1 }}<br>
+                        {% if order.shipping_address_line_2 %}{{ order.shipping_address_line_2 }}<br>{% endif %}
+                        {{ order.shipping_city }}, {{ order.shipping_state }} - {{ order.shipping_postal_code }}<br>
+                        Phone: {{ order.shipping_phone }}
+                    </p>
+                </div>
+
+                <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 24px;">
+                    <h4 style="font-size: 1rem; margin-bottom: 14px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 8px;">Payment Summary</h4>
+                    <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.875rem;">
+                        <div style="display: flex; justify-content: space-between; color: var(--text-secondary);">
+                            <span>Subtotal</span>
+                            <span>₹{{ order.subtotal }}</span>
+                        </div>
+                        {% if order.discount_amount > 0 %}
+                        <div style="display: flex; justify-content: space-between; color: var(--badge-sale);">
+                            <span>Discount ({% if order.coupon_code %}{{ order.coupon_code }}{% endif %})</span>
+                            <span>-₹{{ order.discount_amount }}</span>
+                        </div>
+                        {% endif %}
+                        <div style="display: flex; justify-content: space-between; color: var(--text-secondary);">
+                            <span>Shipping</span>
+                            <span>{% if order.shipping_fee == 0 %}FREE{% else %}₹{{ order.shipping_fee }}{% endif %}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; color: var(--text-secondary);">
+                            <span>Taxes</span>
+                            <span>₹{{ order.tax_amount }}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--border-subtle); padding-top: 10px; margin-top: 6px; font-weight: 700; font-size: 1.1rem;">
+                            <span>Total</span>
+                            <span>₹{{ order.total_amount }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                {% if order.status == 'DELIVERED' %}
+                <div style="margin-top: 18px; text-align: center;">
+                    <a href="{% url 'orders:return_request' order.order_number %}" style="font-size: 0.85rem; color: var(--badge-sale); font-weight: 600;">
+                        Request Return or Refund
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

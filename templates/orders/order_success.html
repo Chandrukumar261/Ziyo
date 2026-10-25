@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Order Confirmed — #{{ order.order_number }}{% endblock %}
+
+{% block content %}
+<div class="ziyo-container ziyo-section">
+    <div style="max-width: 680px; margin: 0 auto; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 48px; box-shadow: var(--shadow-sm);">
+        <div style="text-align: center; margin-bottom: 32px;">
+            <div style="width: 64px; height: 64px; border-radius: 50%; background: #E8F5E9; display: flex; align-items: center; justify-content: center; margin: 0 auto 18px;">
+                <i data-lucide="check" style="width: 32px; height: 32px; color: #2E7D32;"></i>
+            </div>
+            <h1 style="font-size: 2rem; margin-bottom: 8px;">Order Confirmed</h1>
+            <p style="color: var(--text-secondary); font-size: 0.95rem;">
+                Thank you for choosing Ziyo. A confirmation receipt has been issued to <strong>{{ order.email }}</strong>.
+            </p>
+        </div>
+
+        <!-- Order Summary Box -->
+        <div style="background: var(--bg-subtle); border-radius: var(--radius-sm); padding: 24px; margin-bottom: 32px; font-size: 0.9rem;">
+            <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-medium); padding-bottom: 12px; margin-bottom: 14px;">
+                <span>Order Number:</span>
+                <strong>#{{ order.order_number }}</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                <span>Payment Status:</span>
+                <span class="badge" style="background: #E8F5E9; color: #2E7D32;">{{ order.status }}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                <span>Delivery Recipient:</span>
+                <span>{{ order.shipping_full_name }} ({{ order.shipping_city }}, {{ order.shipping_state }})</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--border-medium); padding-top: 12px; margin-top: 12px;">
+                <span style="font-weight: 700;">Total Charged:</span>
+                <strong style="font-size: 1.25rem;">₹{{ order.total_amount }}</strong>
+            </div>
+        </div>
+
+        <!-- Purchased Line Items -->
+        <h3 style="font-size: 1.1rem; margin-bottom: 16px;">Purchased Essentials</h3>
+        <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px;">
+            {% for item in order.items.all %}
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.875rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 10px;">
+                <div>
+                    <strong>{{ item.product_name }}</strong>
+                    {% if item.variant_name %}<span style="color: var(--text-muted);"> &bull; {{ item.variant_name }}</span>{% endif %}
+                    <div style="color: var(--text-muted); font-size: 0.75rem;">Qty: {{ item.quantity }} &bull; SKU: {{ item.sku }}</div>
+                </div>
+                <strong>₹{{ item.line_total }}</strong>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div style="display: flex; gap: 14px; justify-content: center;">
+            <a href="{% url 'orders:order_detail' order.order_number %}" class="btn btn-primary">
+                View Full Order Details
+            </a>
+            <a href="{% url 'catalog:home' %}" class="btn btn-outline">
+                Return to Store
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Contact &amp; Client Concierge — Ziyo{% endblock %}
+
+{% block content %}
+<div class="ziyo-container ziyo-section">
+    <div style="max-width: 880px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1.2fr; gap: 48px; background: var(--bg-surface); padding: 56px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); box-shadow: var(--shadow-sm);">
+        <div>
+            <span style="font-size: 0.8125rem; font-weight: 700; color: var(--accent-primary); text-transform: uppercase; letter-spacing: 0.05em;">Concierge Care</span>
+            <h1 style="font-size: 2rem; margin: 8px 0 16px;">We Are Here to Assist</h1>
+            <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.7; margin-bottom: 28px;">
+                Whether you seek advice on sizing, ceramic care, bespoke gifting, or order inquiries, our client team responds attentively within 24 hours.
+            </p>
+
+            <div style="display: flex; flex-direction: column; gap: 16px; font-size: 0.9rem;">
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <i data-lucide="mail" style="width: 20px; height: 20px; color: var(--accent-primary);"></i>
+                    <span>{{ store_email }}</span>
+                </div>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <i data-lucide="phone" style="width: 20px; height: 20px; color: var(--accent-primary);"></i>
+                    <span>{{ store_phone }}</span>
+                </div>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <i data-lucide="clock" style="width: 20px; height: 20px; color: var(--accent-primary);"></i>
+                    <span>Monday &ndash; Saturday: 09:00 &ndash; 18:00 IST</span>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <form method="POST">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label class="form-label">Your Name *</label>
+                    <input type="text" name="name" required class="form-control" placeholder="Full Name">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Email Address *</label>
+                    <input type="email" name="email" required class="form-control" placeholder="name@example.com">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Subject</label>
+                    <input type="text" name="subject" class="form-control" placeholder="e.g. Order Tracking or Bespoke Inquiries">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Message *</label>
+                    <textarea name="message" required rows="4" class="form-control" placeholder="How can our team help you?"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block">Transmit Inquiry</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

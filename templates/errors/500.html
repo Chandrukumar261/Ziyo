@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}500 — Server Incident — Ziyo{% endblock %}
+
+{% block content %}
+<div class="ziyo-container ziyo-section" style="text-align: center; padding: 100px 20px;">
+    <span style="font-size: 5rem; font-weight: 700; color: var(--accent-primary); display: block; line-height: 1;">500</span>
+    <h1 style="font-size: 2rem; margin: 16px 0 12px;">Unexpected Condition</h1>
+    <p style="color: var(--text-secondary); max-width: 440px; margin: 0 auto 28px;">
+        An unexpected situation was encountered. Our site reliability team has been automatically alerted.
+    </p>
+    <a href="{% url 'catalog:home' %}" class="btn btn-primary">Return to Storefront</a>
+</div>
+{% endblock %}

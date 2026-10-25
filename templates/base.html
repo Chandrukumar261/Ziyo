@@ -1,0 +1,223 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>{% block title %}Ziyo — Curated Minimalist Essentials{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}Experience intentional living with Ziyo's curated essentials, tactile textures, and understated luxury.{% endblock %}">
+    
+    <!-- Design System CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    
+    <!-- Zero-Flicker Theme Engine -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('ziyo-theme');
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = savedTheme ? savedTheme : (prefersDark ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
+
+    <!-- Lucide Feather Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- Storefront Navigation Header -->
+    <header class="ziyo-header">
+        <div class="ziyo-container">
+            <div class="header-inner">
+                <!-- Brand Logo -->
+                <a href="{% url 'catalog:home' %}" class="brand-logo" id="headerLogo">
+                    Ziyo<span class="dot">.</span>
+                </a>
+
+                <!-- Desktop Navigation Menu -->
+                <nav class="header-nav-desktop">
+                    <ul class="nav-links">
+                        <li><a href="{% url 'catalog:home' %}" class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">Home</a></li>
+                        <li><a href="{% url 'catalog:product_list' %}" class="nav-link {% if request.resolver_match.url_name == 'product_list' %}active{% endif %}">Shop All</a></li>
+                        {% for cat in nav_categories|slice:":4" %}
+                        <li><a href="{{ cat.get_absolute_url }}" class="nav-link">{{ cat.name }}</a></li>
+                        {% endfor %}
+                        <li><a href="{% url 'content:contact' %}" class="nav-link">Contact</a></li>
+                    </ul>
+                </nav>
+
+                <!-- Search Input Bar -->
+                <div class="header-search">
+                    <form action="{% url 'catalog:product_list' %}" method="GET">
+                        <i data-lucide="search" class="search-icon" style="width: 18px; height: 18px;"></i>
+                        <input type="text" name="q" placeholder="Search curated products..." value="{{ request.GET.q }}">
+                    </form>
+                </div>
+
+                <!-- Action Icons: Theme Toggle, Account, Wishlist, Cart -->
+                <div class="header-actions">
+                    <!-- Light / Dark Theme Switcher Button -->
+                    <button type="button" class="icon-btn theme-toggle-btn" id="themeToggleBtn" title="Toggle Light/Dark Theme" aria-label="Toggle dark/light theme">
+                        <i data-lucide="sun" class="sun-icon" style="width: 19px; height: 19px;"></i>
+                        <i data-lucide="moon" class="moon-icon" style="width: 19px; height: 19px;"></i>
+                    </button>
+
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'accounts:profile' %}" class="icon-btn" title="My Account">
+                            <i data-lucide="user" style="width: 20px; height: 20px;"></i>
+                        </a>
+                    {% else %}
+                        <a href="{% url 'accounts:login' %}" class="icon-btn" title="Sign In">
+                            <i data-lucide="user" style="width: 20px; height: 20px;"></i>
+                        </a>
+                    {% endif %}
+
+                    <a href="{% url 'cart:wishlist' %}" class="icon-btn" title="Saved Wishlist">
+                        <i data-lucide="heart" style="width: 20px; height: 20px;"></i>
+                    </a>
+
+                    <a href="{% url 'cart:cart_detail' %}" class="icon-btn" title="Shopping Cart" id="cartHeaderBtn">
+                        <i data-lucide="shopping-bag" style="width: 20px; height: 20px;"></i>
+                        {% if cart_item_count > 0 %}
+                        <span class="badge-count" id="cartCountBadge">{{ cart_item_count }}</span>
+                        {% endif %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Global Toast / Flash Messages -->
+    {% if messages %}
+    <div class="messages-container" id="toastContainer">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'neutral' }}">
+            <span>{{ message }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Content Area -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- AI Concierge Floating Trigger Button -->
+    <button class="ai-chat-floating-btn" id="aiChatToggle" title="Ask Ziyo AI Concierge" style="position: fixed; bottom: 84px; right: 24px; z-index: 990; background-color: var(--accent-primary); color: #FFF; border: none; border-radius: 9999px; padding: 12px 20px; font-weight: 600; display: flex; align-items: center; gap: 8px; box-shadow: var(--shadow-lg); cursor: pointer;">
+        <i data-lucide="sparkles" style="width: 18px; height: 18px;"></i>
+        <span>Concierge</span>
+    </button>
+
+    <!-- AI Concierge Modal Dialog -->
+    <div class="ai-chat-modal" id="aiChatModal">
+        <div class="chat-header" style="background-color: var(--bg-subtle); padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-subtle);">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="sparkles" style="width: 16px; height: 16px; color: var(--accent-primary);"></i>
+                <strong style="font-size: 0.9rem;">Ziyo AI Concierge</strong>
+            </div>
+            <button id="aiChatClose" style="background: none; border: none; cursor: pointer; color: var(--text-muted);"><i data-lucide="x" style="width: 16px; height: 16px;"></i></button>
+        </div>
+        <div class="chat-messages" id="aiChatMessages" style="flex: 1; padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; font-size: 0.85rem;">
+            <div style="background-color: var(--bg-subtle); padding: 10px 14px; border-radius: 12px; align-self: flex-start; max-width: 85%;">
+                Welcome to Ziyo. How may I assist your shopping experience today?
+            </div>
+        </div>
+        <form id="aiChatForm" style="padding: 10px; border-top: 1px solid var(--border-subtle); display: flex; gap: 8px;">
+            <input type="text" id="aiChatInput" placeholder="Ask about shipping, returns, styling..." style="flex: 1; padding: 8px 12px; border-radius: var(--radius-pill); border: 1px solid var(--border-medium); font-size: 0.85rem; outline: none;">
+            <button type="submit" style="background-color: var(--accent-primary); color: #FFF; border: none; border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; cursor: pointer;"><i data-lucide="send" style="width: 14px; height: 14px;"></i></button>
+        </form>
+    </div>
+
+    <!-- Mobile Bottom Navigation Bar (Matching Dribbble Mobile Concept) -->
+    <div class="mobile-nav-bar">
+        <div class="mobile-nav-grid">
+            <a href="{% url 'catalog:home' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                <i data-lucide="home" style="width: 22px; height: 22px;"></i>
+                <span>Home</span>
+            </a>
+            <a href="{% url 'catalog:product_list' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'product_list' %}active{% endif %}">
+                <i data-lucide="grid" style="width: 22px; height: 22px;"></i>
+                <span>Shop</span>
+            </a>
+            <a href="{% url 'cart:wishlist' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'wishlist' %}active{% endif %}">
+                <i data-lucide="heart" style="width: 22px; height: 22px;"></i>
+                <span>Wishlist</span>
+            </a>
+            <a href="{% url 'cart:cart_detail' %}" class="mobile-nav-item {% if request.resolver_match.url_name == 'cart_detail' %}active{% endif %}">
+                <i data-lucide="shopping-bag" style="width: 22px; height: 22px;"></i>
+                <span>Cart ({{ cart_item_count }})</span>
+            </a>
+            <a href="{% if user.is_authenticated %}{% url 'accounts:profile' %}{% else %}{% url 'accounts:login' %}{% endif %}" class="mobile-nav-item">
+                <i data-lucide="user" style="width: 22px; height: 22px;"></i>
+                <span>Account</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Storefront Footer -->
+    <footer class="ziyo-footer">
+        <div class="ziyo-container">
+            <div class="footer-grid">
+                <div>
+                    <h3 class="brand-logo" style="margin-bottom: 14px;">Ziyo<span class="dot">.</span></h3>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; max-width: 320px; margin-bottom: 20px;">
+                        Curated essentials designed with pure tactile materials, warm neutrals, and enduring craftsmanship.
+                    </p>
+                    <p style="font-size: 0.85rem; color: var(--text-muted);">
+                        Contact: {{ store_email }} &bull; {{ store_phone }}
+                    </p>
+                </div>
+
+                <div>
+                    <h4 class="footer-title">Collections</h4>
+                    <ul class="footer-links">
+                        <li><a href="{% url 'catalog:product_list' %}">All Products</a></li>
+                        {% for cat in nav_categories|slice:":5" %}
+                        <li><a href="{{ cat.get_absolute_url }}">{{ cat.name }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="footer-title">Company & Policies</h4>
+                    <ul class="footer-links">
+                        <li><a href="{% url 'content:contact' %}">Customer Care</a></li>
+                        {% for p in footer_pages %}
+                        <li><a href="{{ p.get_absolute_url }}">{{ p.title }}</a></li>
+                        {% empty %}
+                        <li><a href="{% url 'content:contact' %}">Shipping & Returns</a></li>
+                        <li><a href="{% url 'content:contact' %}">Privacy & Terms</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="footer-title">Stay Connected</h4>
+                    <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 14px;">
+                        Receive private access to new arrivals, curated edits, and exclusive member incentives.
+                    </p>
+                    <form action="{% url 'content:newsletter_subscribe' %}" method="POST" style="display: flex; gap: 8px;">
+                        {% csrf_token %}
+                        <input type="email" name="email" required placeholder="Enter your email" style="flex: 1; padding: 10px 14px; border-radius: var(--radius-pill); border: 1px solid var(--border-medium); font-size: 0.85rem; outline: none; background: var(--bg-surface); color: var(--text-primary);">
+                        <button type="submit" class="btn btn-primary btn-sm">Join</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; {% now "Y" %} Ziyo Inc. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Interactive Scripts -->
+    <script src="{% static 'js/main.js' %}"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

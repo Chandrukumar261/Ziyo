@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} — Ziyo{% endblock %}
+
+{% block content %}
+<div class="ziyo-container ziyo-section">
+    <div style="max-width: 560px; margin: 0 auto; background: var(--bg-surface); padding: 40px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); box-shadow: var(--shadow-sm);">
+        <h1 style="font-size: 1.85rem; margin-bottom: 24px;">{{ title }}</h1>
+
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label class="form-label">Recipient Full Name *</label>
+                {{ form.full_name }}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Phone Number *</label>
+                {{ form.phone }}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Address Line 1 *</label>
+                {{ form.address_line_1 }}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Address Line 2 (Optional)</label>
+                {{ form.address_line_2 }}
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px;">
+                <div class="form-group">
+                    <label class="form-label">City *</label>
+                    {{ form.city }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">State *</label>
+                    {{ form.state }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">PIN Code *</label>
+                    {{ form.postal_code }}
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Address Type</label>
+                {{ form.address_type }}
+            </div>
+
+            <div class="form-check" style="margin-bottom: 24px;">
+                {{ form.is_default }}
+                <label for="{{ form.is_default.id_for_label }}" style="font-size: 0.875rem;">Set as my default address</label>
+            </div>
+
+            <div style="display: flex; gap: 14px;">
+                <button type="submit" class="btn btn-primary">Save Address</button>
+                <a href="{% url 'accounts:address_list' %}" class="btn btn-outline">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

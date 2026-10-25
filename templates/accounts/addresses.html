@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Saved Addresses — Ziyo{% endblock %}
+
+{% block content %}
+<div class="ziyo-container ziyo-section">
+    <div style="max-width: 800px; margin: 0 auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
+            <h1 style="font-size: 2.25rem;">Saved Addresses</h1>
+            <a href="{% url 'accounts:address_create' %}" class="btn btn-primary btn-sm">
+                <i data-lucide="plus" style="width: 16px; height: 16px;"></i> Add New Address
+            </a>
+        </div>
+
+        {% if addresses %}
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+            {% for addr in addresses %}
+            <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 24px; position: relative;">
+                {% if addr.is_default %}
+                <span class="badge" style="background: var(--accent-primary); color: #FFF; position: absolute; top: 16px; right: 16px;">Default</span>
+                {% endif %}
+                <h3 style="font-size: 1.1rem; margin-bottom: 6px;">{{ addr.full_name }}</h3>
+                <p style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 16px;">
+                    {{ addr.address_line_1 }}<br>
+                    {% if addr.address_line_2 %}{{ addr.address_line_2 }}<br>{% endif %}
+                    {{ addr.city }}, {{ addr.state }} - {{ addr.postal_code }}<br>
+                    {{ addr.country }}<br>
+                    Phone: {{ addr.phone }}
+                </p>
+
+                <div style="display: flex; gap: 12px; border-top: 1px solid var(--border-subtle); padding-top: 12px;">
+                    <a href="{% url 'accounts:address_edit' addr.id %}" class="btn btn-outline btn-sm" style="font-size: 0.75rem;">Edit</a>
+                    <a href="{% url 'accounts:address_delete' addr.id %}" class="btn btn-outline btn-sm" style="font-size: 0.75rem; color: #C62828;">Delete</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 60px 20px; background: var(--bg-surface); border-radius: var(--radius-md);">
+            <i data-lucide="map-pin" style="width: 48px; height: 48px; color: var(--text-muted); margin-bottom: 16px;"></i>
+            <h3 style="font-size: 1.25rem; margin-bottom: 8px;">No saved addresses</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 20px;">Save your preferred shipping destinations for effortless one-click checkout.</p>
+            <a href="{% url 'accounts:address_create' %}" class="btn btn-primary btn-sm">Add First Address</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

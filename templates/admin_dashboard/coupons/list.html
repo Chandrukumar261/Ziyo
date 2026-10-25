@@ -1,0 +1,69 @@
+{% extends 'admin_dashboard/base.html' %}
+{% load static %}
+
+{% block page_heading %}Promotions &amp; Coupon Management{% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <div class="admin-card-header">
+        <h3 class="admin-card-title">All Coupons ({{ coupons.count }})</h3>
+        <a href="{% url 'dashboard:coupon_create' %}" class="admin-btn admin-btn-primary admin-btn-sm">
+            <i data-lucide="plus" style="width: 14px; height: 14px;"></i> Create Coupon Code
+        </a>
+    </div>
+
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Type</th>
+                    <th>Discount Value</th>
+                    <th>Min Spend</th>
+                    <th>Validity Window</th>
+                    <th>Usage Count</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in coupons %}
+                <tr>
+                    <td><strong>{{ c.code }}</strong></td>
+                    <td>{{ c.get_discount_type_display }}</td>
+                    <td>
+                        <strong>
+                            {% if c.discount_type == 'PERCENTAGE' %}{{ c.value }}%{% else %}₹{{ c.value }}{% endif %}
+                        </strong>
+                    </td>
+                    <td>₹{{ c.min_purchase_amount }}</td>
+                    <td><small style="color: var(--admin-text-muted);">{{ c.valid_from|date:"M d" }} &ndash; {{ c.valid_to|date:"M d, Y" }}</small></td>
+                    <td>{{ c.used_count }}{% if c.usage_limit %} / {{ c.usage_limit }}{% endif %}</td>
+                    <td>
+                        {% if c.is_active %}
+                        <span class="status-pill status-active">Active</span>
+                        {% else %}
+                        <span class="status-pill status-cancelled">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 6px;">
+                            <a href="{% url 'dashboard:coupon_edit' c.id %}" class="admin-btn admin-btn-outline admin-btn-sm" title="Edit">
+                                <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i>
+                            </a>
+                            <a href="{% url 'dashboard:coupon_delete' c.id %}" class="admin-btn admin-btn-outline admin-btn-sm" style="color: #C62828;" title="Delete">
+                                <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" style="text-align: center; color: var(--admin-text-muted); padding: 40px;">No promotional coupons created.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

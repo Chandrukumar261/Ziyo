@@ -1,0 +1,47 @@
+{% extends 'admin_dashboard/base.html' %}
+{% load static %}
+
+{% block page_heading %}Customer Management (CRM){% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <div class="admin-card-header">
+        <h3 class="admin-card-title">Registered Customers ({{ customers.count }})</h3>
+    </div>
+
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Customer Name</th>
+                    <th>Email Address</th>
+                    <th>Phone</th>
+                    <th>Orders Placed</th>
+                    <th>Joined</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cust in customers %}
+                <tr>
+                    <td><strong>{{ cust.full_name }}</strong></td>
+                    <td>{{ cust.email }}</td>
+                    <td>{{ cust.phone|default:"—" }}</td>
+                    <td><strong>{{ cust.order_count }}</strong> orders</td>
+                    <td><small style="color: var(--admin-text-muted);">{{ cust.date_joined|date:"M d, Y" }}</small></td>
+                    <td>
+                        <a href="{% url 'dashboard:customer_detail' cust.id %}" class="admin-btn admin-btn-outline admin-btn-sm">
+                            View Profile &rsaquo;
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align: center; color: var(--admin-text-muted); padding: 40px;">No registered customer records found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

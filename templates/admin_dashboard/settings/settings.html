@@ -1,0 +1,42 @@
+{% extends 'admin_dashboard/base.html' %}
+{% load static %}
+
+{% block page_heading %}Store Operational Settings{% endblock %}
+
+{% block content %}
+<div class="admin-card" style="max-width: 800px;">
+    <div class="admin-card-header">
+        <h3 class="admin-card-title">Business &amp; Policy Configuration</h3>
+    </div>
+
+    <div style="padding: 32px;">
+        <form method="POST">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label class="form-label">Store Public Name</label>
+                <input type="text" name="setting_STORE_NAME" value="{{ store_name }}" class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Client Support Email</label>
+                <input type="email" name="setting_STORE_EMAIL" value="{{ store_email }}" class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Customer Support Phone</label>
+                <input type="text" name="setting_STORE_PHONE" value="{{ store_phone }}" class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Brand Tagline / Slogan</label>
+                <input type="text" name="setting_STORE_TAGLINE" value="{{ store_tagline }}" class="form-control">
+            </div>
+
+            <button type="submit" class="admin-btn admin-btn-primary" style="margin-top: 10px;">
+                Save Operational Settings
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

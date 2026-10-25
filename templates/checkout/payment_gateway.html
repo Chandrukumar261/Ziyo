@@ -1,0 +1,230 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Payment Gateway — Order #{{ order.order_number }}{% endblock %}
+
+{% block content %}
+<div class="ziyo-container ziyo-section">
+    <div style="max-width: 620px; margin: 0 auto; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 40px; box-shadow: var(--shadow-md);">
+        <div style="text-align: center; margin-bottom: 28px;">
+            <div style="width: 52px; height: 52px; border-radius: 50%; background: var(--bg-subtle); display: flex; align-items: center; justify-content: center; margin: 0 auto 14px;">
+                <i data-lucide="credit-card" style="width: 26px; height: 26px; color: var(--accent-primary);"></i>
+            </div>
+            <h1 style="font-size: 1.85rem; margin-bottom: 6px;">Complete Payment</h1>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">
+                Order Reference: <strong>#{{ order.order_number }}</strong>
+            </p>
+        </div>
+
+        <!-- Order Summary Card -->
+        <div style="background: var(--bg-subtle); border-radius: var(--radius-sm); padding: 20px; margin-bottom: 28px; font-size: 0.9rem;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span style="color: var(--text-secondary);">Customer:</span>
+                <strong>{{ order.shipping_full_name }}</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span style="color: var(--text-secondary);">Deliver to:</span>
+                <span>{{ order.shipping_city }}, {{ order.shipping_state }}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span style="color: var(--text-secondary);">Total Payable:</span>
+                <strong style="font-size: 1.25rem; color: var(--text-primary);">₹{{ order.total_amount }}</strong>
+            </div>
+        </div>
+
+        <!-- Payment Options Tabs -->
+        <div style="display: flex; gap: 8px; border-bottom: 1px solid var(--border-medium); margin-bottom: 24px;">
+            <button type="button" class="pay-tab-btn" id="tab-btn-card" onclick="switchPayTab('card')" style="flex: 1; padding: 12px 8px; border: none; background: transparent; font-weight: 600; font-size: 0.9rem; border-bottom: 3px solid var(--accent-primary); color: var(--accent-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                <i data-lucide="credit-card" style="width: 16px; height: 16px;"></i> Cards
+            </button>
+            <button type="button" class="pay-tab-btn" id="tab-btn-upi" onclick="switchPayTab('upi')" style="flex: 1; padding: 12px 8px; border: none; background: transparent; font-weight: 600; font-size: 0.9rem; border-bottom: 3px solid transparent; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                <i data-lucide="smartphone" style="width: 16px; height: 16px;"></i> UPI / NetBanking
+            </button>
+            <button type="button" class="pay-tab-btn" id="tab-btn-cod" onclick="switchPayTab('cod')" style="flex: 1; padding: 12px 8px; border: none; background: transparent; font-weight: 600; font-size: 0.9rem; border-bottom: 3px solid transparent; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                <i data-lucide="truck" style="width: 16px; height: 16px;"></i> Cash on Delivery
+            </button>
+        </div>
+
+        <!-- 1. Credit / Debit Card Panel -->
+        <div id="panel-card" class="pay-panel" style="margin-bottom: 24px;">
+            <div style="background: var(--bg-subtle); border-radius: var(--radius-sm); padding: 16px; margin-bottom: 18px; border: 1px solid var(--border-subtle);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-weight: 600; font-size: 0.85rem;">Accepted Cards:</span>
+                    <span style="font-size: 0.75rem; color: #047857; font-weight: 600;">PCI-DSS Level 1</span>
+                </div>
+                <div style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.4;">
+                    Visa, MasterCard, RuPay, American Express, Diners Club, Maestro. Seamless OTP 3D-Secure checkout.
+                </div>
+            </div>
+            <button id="rzp-button-card" class="btn btn-primary btn-block" style="padding: 15px; font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <i data-lucide="credit-card" style="width: 18px; height: 18px;"></i> Pay ₹{{ order.total_amount }} with Credit / Debit Card
+            </button>
+        </div>
+
+        <!-- 2. UPI / NetBanking Panel -->
+        <div id="panel-upi" class="pay-panel" style="display: none; margin-bottom: 24px;">
+            <div style="background: var(--bg-subtle); border-radius: var(--radius-sm); padding: 16px; margin-bottom: 18px; border: 1px solid var(--border-subtle);">
+                <div style="font-weight: 600; font-size: 0.85rem; margin-bottom: 6px;">Supported UPI & Banks:</div>
+                <div style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.4;">
+                    Google Pay, PhonePe, Paytm, BHIM, Cred, HDFC, ICICI, SBI, Axis, Kotak and 50+ banking networks.
+                </div>
+            </div>
+            <button id="rzp-button-upi" class="btn btn-primary btn-block" style="padding: 15px; font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 8px; background: #0F766E;">
+                <i data-lucide="smartphone" style="width: 18px; height: 18px;"></i> Pay ₹{{ order.total_amount }} with UPI / NetBanking
+            </button>
+        </div>
+
+        <!-- 3. Cash on Delivery Panel -->
+        <div id="panel-cod" class="pay-panel" style="display: none; margin-bottom: 24px;">
+            <div style="background: var(--bg-subtle); border-radius: var(--radius-sm); padding: 18px; margin-bottom: 18px; border: 1px solid var(--border-subtle);">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                    <i data-lucide="check-circle" style="width: 18px; height: 18px; color: #B45309;"></i>
+                    <strong style="font-size: 0.95rem;">Doorstep Cash or Digital Scan</strong>
+                </div>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0; line-height: 1.4;">
+                    No advance payment required. You can pay ₹{{ order.total_amount }} using cash or doorstep UPI scan when the delivery agent arrives.
+                </p>
+            </div>
+            <form action="{% url 'payments:switch_to_cod' order.order_number %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary btn-block" style="padding: 15px; font-size: 1rem; background: #8C7051;">
+                    <i data-lucide="truck" style="width: 18px; height: 18px;"></i> Confirm Cash on Delivery Order &rarr;
+                </button>
+            </form>
+        </div>
+
+        <!-- Development Sandbox Simulation Controls -->
+        <div style="border-top: 1px dashed var(--border-medium); padding-top: 24px; margin-top: 24px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent-primary);">
+                    Sandbox Verification Mode
+                </span>
+                <span class="badge" style="background: #E0E7FF; color: #3730A3;">Test Gateway</span>
+            </div>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 14px;">
+                Verify gateway verification endpoints without live credentials:
+            </p>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <!-- Simulate Success -->
+                <form action="{% url 'payments:callback' %}" method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="order_number" value="{{ order.order_number }}">
+                    <input type="hidden" name="razorpay_order_id" value="{{ gateway_order_id }}">
+                    <input type="hidden" name="razorpay_payment_id" value="pay_sandbox_{{ order.order_number }}">
+                    <input type="hidden" name="razorpay_signature" value="sandbox_sig_{{ order.order_number }}">
+                    <button type="submit" class="btn btn-outline btn-block btn-sm" style="color: #2E7D32; border-color: #A5D6A7;">
+                        ✔ Simulate Success
+                    </button>
+                </form>
+
+                <!-- Simulate Signature Tampering Failure -->
+                <form action="{% url 'payments:callback' %}" method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="order_number" value="{{ order.order_number }}">
+                    <input type="hidden" name="razorpay_order_id" value="{{ gateway_order_id }}">
+                    <input type="hidden" name="razorpay_payment_id" value="pay_invalid_123">
+                    <input type="hidden" name="razorpay_signature" value="tampered_invalid_signature">
+                    <button type="submit" class="btn btn-outline btn-block btn-sm" style="color: #C62828; border-color: #EF9A9A;">
+                        ✖ Simulate Failed Sig
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden POST form for official Razorpay callback -->
+<form id="razorpay-callback-form" action="{% url 'payments:callback' %}" method="POST" style="display: none;">
+    {% csrf_token %}
+    <input type="hidden" name="order_number" value="{{ order.order_number }}">
+    <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
+    <input type="hidden" name="razorpay_order_id" id="razorpay_order_id">
+    <input type="hidden" name="razorpay_signature" id="razorpay_signature">
+</form>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+function switchPayTab(tab) {
+    const panels = {
+        'card': document.getElementById('panel-card'),
+        'upi': document.getElementById('panel-upi'),
+        'cod': document.getElementById('panel-cod'),
+    };
+    const buttons = {
+        'card': document.getElementById('tab-btn-card'),
+        'upi': document.getElementById('tab-btn-upi'),
+        'cod': document.getElementById('tab-btn-cod'),
+    };
+
+    for (const [key, panel] of Object.entries(panels)) {
+        if (!panel) continue;
+        if (key === tab) {
+            panel.style.display = 'block';
+            buttons[key].style.borderBottomColor = 'var(--accent-primary)';
+            buttons[key].style.color = 'var(--accent-primary)';
+        } else {
+            panel.style.display = 'none';
+            buttons[key].style.borderBottomColor = 'transparent';
+            buttons[key].style.color = 'var(--text-secondary)';
+        }
+    }
+}
+
+// Check initial method parameter
+const initialMethod = "{{ selected_method }}";
+if (initialMethod === 'RAZORPAY_UPI') {
+    switchPayTab('upi');
+} else if (initialMethod === 'COD') {
+    switchPayTab('cod');
+} else {
+    switchPayTab('card');
+}
+
+// Razorpay Options
+var options = {
+    "key": "{{ razorpay_key_id }}",
+    "amount": "{{ amount_paise }}",
+    "currency": "{{ currency }}",
+    "name": "Ziyo Store",
+    "description": "Order #{{ order.order_number }}",
+    "order_id": "{{ gateway_order_id }}",
+    "handler": function (response) {
+        document.getElementById('razorpay_payment_id').value = response.razorpay_payment_id;
+        document.getElementById('razorpay_order_id').value = response.razorpay_order_id;
+        document.getElementById('razorpay_signature').value = response.razorpay_signature;
+        document.getElementById('razorpay-callback-form').submit();
+    },
+    "prefill": {
+        "name": "{{ order.shipping_full_name }}",
+        "email": "{{ order.email }}",
+        "contact": "{{ order.shipping_phone }}"
+    },
+    "theme": {
+        "color": "#8C7051"
+    }
+};
+
+var rzp = new Razorpay(options);
+rzp.on('payment.failed', function (response) {
+    window.location.href = "{% url 'payments:payment_failure' order.order_number %}";
+});
+
+const btnCard = document.getElementById('rzp-button-card');
+if (btnCard) {
+    btnCard.onclick = function(e) {
+        rzp.open();
+        e.preventDefault();
+    };
+}
+
+const btnUpi = document.getElementById('rzp-button-upi');
+if (btnUpi) {
+    btnUpi.onclick = function(e) {
+        rzp.open();
+        e.preventDefault();
+    };
+}
+</script>
+{% endblock %}

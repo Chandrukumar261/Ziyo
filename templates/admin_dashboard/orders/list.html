@@ -1,0 +1,66 @@
+{% extends 'admin_dashboard/base.html' %}
+{% load static %}
+
+{% block page_heading %}Order Management &amp; Fulfillment{% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <div class="admin-card-header">
+        <div style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap;">
+            <!-- Filter by Status -->
+            <form method="GET" style="display: flex; gap: 10px; align-items: center;">
+                {% if query %}<input type="hidden" name="q" value="{{ query }}">{% endif %}
+                <select name="status" class="form-select" style="width: auto; padding: 6px 12px; font-size: 0.85rem;" onchange="this.form.submit()">
+                    <option value="">All Statuses</option>
+                    {% for st, label in statuses %}
+                    <option value="{{ st }}" {% if status_filter == st %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+
+            <form method="GET" style="display: flex; gap: 8px;">
+                {% if status_filter %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
+                <input type="text" name="q" placeholder="Order number, email, name..." value="{{ query }}" class="form-control" style="padding: 6px 12px; font-size: 0.85rem; width: 240px;">
+                <button type="submit" class="admin-btn admin-btn-outline admin-btn-sm">Search</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Order #</th>
+                    <th>Date</th>
+                    <th>Customer</th>
+                    <th>Items</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ord in page_obj %}
+                <tr>
+                    <td><strong>#{{ ord.order_number }}</strong></td>
+                    <td>{{ ord.created_at|date:"M d, Y &bull; H:i" }}</td>
+                    <td>{{ ord.shipping_full_name }}<br><small style="color: var(--admin-text-muted);">{{ ord.email }}</small></td>
+                    <td>{{ ord.items.count }} items</td>
+                    <td><strong>₹{{ ord.total_amount }}</strong></td>
+                    <td><span class="status-pill status-{{ ord.status|lower }}">{{ ord.status }}</span></td>
+                    <td>
+                        <a href="{% url 'dashboard:order_detail' ord.id %}" class="admin-btn admin-btn-primary admin-btn-sm">
+                            Manage &rsaquo;
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="text-align: center; color: var(--admin-text-muted); padding: 40px;">No matching orders found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

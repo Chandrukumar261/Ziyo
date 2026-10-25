@@ -1,0 +1,60 @@
+{% extends 'admin_dashboard/base.html' %}
+{% load static %}
+
+{% block page_heading %}Visual Banner Management{% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <div class="admin-card-header">
+        <h3 class="admin-card-title">Homepage &amp; Promotional Banners</h3>
+        <a href="{% url 'dashboard:banner_create' %}" class="admin-btn admin-btn-primary admin-btn-sm">
+            <i data-lucide="plus" style="width: 14px; height: 14px;"></i> Add Banner
+        </a>
+    </div>
+
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Title &amp; Subtitle</th>
+                    <th>Location</th>
+                    <th>Link Target</th>
+                    <th>Order</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for b in banners %}
+                <tr>
+                    <td>
+                        <strong>{{ b.title }}</strong>
+                        {% if b.subtitle %}<br><small style="color: var(--admin-text-muted);">{{ b.subtitle }}</small>{% endif %}
+                    </td>
+                    <td><span class="badge" style="background: #E0E7FF; color: #3730A3;">{{ b.get_location_display }}</span></td>
+                    <td><code>{{ b.link_url }}</code></td>
+                    <td>{{ b.sort_order }}</td>
+                    <td>
+                        {% if b.is_active %}<span class="status-pill status-active">Active</span>{% else %}<span class="status-pill status-cancelled">Inactive</span>{% endif %}
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 6px;">
+                            <a href="{% url 'dashboard:banner_edit' b.id %}" class="admin-btn admin-btn-outline admin-btn-sm" title="Edit">
+                                <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i>
+                            </a>
+                            <a href="{% url 'dashboard:banner_delete' b.id %}" class="admin-btn admin-btn-outline admin-btn-sm" style="color: #C62828;" title="Delete">
+                                <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align: center; color: var(--admin-text-muted); padding: 40px;">No promotional banners created.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends 'admin_dashboard/base.html' %}
+{% load static %}
+
+{% block page_heading %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="admin-card" style="max-width: 700px;">
+    <div class="admin-card-header">
+        <h3 class="admin-card-title">{{ title }}</h3>
+        <a href="{% url 'dashboard:category_list' %}" class="admin-btn admin-btn-outline admin-btn-sm">&larr; Back to Categories</a>
+    </div>
+
+    <div style="padding: 32px;">
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-group">
+                <label class="form-label">Category Name *</label>
+                {{ form.name }}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Parent Department (Optional)</label>
+                {{ form.parent }}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                {{ form.description }}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Category Visual Banner / Icon</label>
+                {{ form.image }}
+            </div>
+
+            <div class="form-group" style="max-width: 160px;">
+                <label class="form-label">Sort Order</label>
+                {{ form.sort_order }}
+            </div>
+
+            <div style="display: flex; gap: 24px; padding: 14px; background: #FAFAFA; border-radius: var(--admin-radius); margin-bottom: 24px;">
+                <div class="form-check">
+                    {{ form.is_featured }}
+                    <label for="{{ form.is_featured.id_for_label }}">Feature on Homepage</label>
+                </div>
+                <div class="form-check">
+                    {{ form.is_active }}
+                    <label for="{{ form.is_active.id_for_label }}">Active</label>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 14px;">
+                <button type="submit" class="admin-btn admin-btn-primary">Save Category</button>
+                <a href="{% url 'dashboard:category_list' %}" class="admin-btn admin-btn-outline">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

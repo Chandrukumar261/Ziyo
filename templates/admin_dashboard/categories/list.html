@@ -1,0 +1,59 @@
+{% extends 'admin_dashboard/base.html' %}
+{% load static %}
+
+{% block page_heading %}Category Management{% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <div class="admin-card-header">
+        <h3 class="admin-card-title">All Categories ({{ categories.count }})</h3>
+        <a href="{% url 'dashboard:category_create' %}" class="admin-btn admin-btn-primary admin-btn-sm">
+            <i data-lucide="plus" style="width: 14px; height: 14px;"></i> Add Category
+        </a>
+    </div>
+
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Category Name</th>
+                    <th>Parent</th>
+                    <th>Products Count</th>
+                    <th>Featured</th>
+                    <th>Active</th>
+                    <th>Sort Order</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cat in categories %}
+                <tr>
+                    <td><strong>{{ cat.name }}</strong></td>
+                    <td>{{ cat.parent.name|default:"Root Department" }}</td>
+                    <td><strong>{{ cat.num_products }}</strong> products</td>
+                    <td>{% if cat.is_featured %}✔ Yes{% else %}&mdash;{% endif %}</td>
+                    <td>
+                        {% if cat.is_active %}<span class="status-pill status-active">Active</span>{% else %}<span class="status-pill status-cancelled">Inactive</span>{% endif %}
+                    </td>
+                    <td>{{ cat.sort_order }}</td>
+                    <td>
+                        <div style="display: flex; gap: 6px;">
+                            <a href="{% url 'dashboard:category_edit' cat.id %}" class="admin-btn admin-btn-outline admin-btn-sm" title="Edit">
+                                <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i>
+                            </a>
+                            <a href="{% url 'dashboard:category_delete' cat.id %}" class="admin-btn admin-btn-outline admin-btn-sm" style="color: #C62828;" title="Delete">
+                                <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="text-align: center; color: var(--admin-text-muted); padding: 40px;">No categories configured.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

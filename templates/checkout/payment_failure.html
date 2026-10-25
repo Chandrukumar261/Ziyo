@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Payment Failed — Ziyo{% endblock %}
+
+{% block content %}
+<div class="ziyo-container ziyo-section">
+    <div style="max-width: 540px; margin: 0 auto; text-align: center; background: var(--bg-surface); padding: 48px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); box-shadow: var(--shadow-sm);">
+        <div style="width: 64px; height: 64px; border-radius: 50%; background: #FFEBEE; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+            <i data-lucide="alert-triangle" style="width: 32px; height: 32px; color: #C62828;"></i>
+        </div>
+        <h1 style="font-size: 1.85rem; margin-bottom: 12px; color: #C62828;">Payment Could Not Be Verified</h1>
+        <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 24px; line-height: 1.6;">
+            We were unable to complete verification for Order <strong>#{{ order.order_number }}</strong>. No funds have been captured from your account.
+        </p>
+
+        <div style="display: flex; gap: 14px; justify-content: center;">
+            <a href="{% url 'payments:initiate_payment' order.order_number %}" class="btn btn-primary">
+                Retry Payment
+            </a>
+            <a href="{% url 'cart:cart_detail' %}" class="btn btn-outline">
+                Return to Bag
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

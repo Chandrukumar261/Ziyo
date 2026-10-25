@@ -1,0 +1,15 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}404 — Resource Not Found — Ziyo Management{% endblock %}
+{% block page_heading %}404 Not Found{% endblock %}
+
+{% block content %}
+<div class="admin-card" style="text-align: center; padding: 80px 20px;">
+    <span style="font-size: 4rem; font-weight: 700; color: var(--admin-primary); display: block;">404</span>
+    <h2 style="font-size: 1.5rem; margin: 12px 0;">Administrative Resource Not Found</h2>
+    <p style="color: var(--admin-text-muted); max-width: 480px; margin: 0 auto 24px;">
+        The requested administrative route, record, or storefront path does not exist on this management host.
+    </p>
+    <a href="{% url 'dashboard:overview' %}" class="admin-btn admin-btn-primary">Return to Dashboard</a>
+</div>
+{% endblock %}

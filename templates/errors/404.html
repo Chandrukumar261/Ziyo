@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}404 — Page Not Found — Ziyo{% endblock %}
+
+{% block content %}
+<div class="ziyo-container ziyo-section" style="text-align: center; padding: 100px 20px;">
+    <span style="font-size: 5rem; font-weight: 700; color: var(--accent-primary); display: block; line-height: 1;">404</span>
+    <h1 style="font-size: 2rem; margin: 16px 0 12px;">Object Not Found</h1>
+    <p style="color: var(--text-secondary); max-width: 440px; margin: 0 auto 28px;">
+        The page or curated collection you were searching for may have been moved or archived.
+    </p>
+    <a href="{% url 'catalog:home' %}" class="btn btn-primary">Return to Storefront</a>
+</div>
+{% endblock %}

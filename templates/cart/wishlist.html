@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Saved Wishlist — Ziyo{% endblock %}
+
+{% block content %}
+<div class="ziyo-container ziyo-section">
+    <h1 style="font-size: 2.25rem; margin-bottom: 32px;">Saved Wishlist</h1>
+
+    {% if items %}
+    <div class="product-grid">
+        {% for item in items %}
+        <div class="product-card">
+            <div class="card-media">
+                <form action="{% url 'cart:toggle_wishlist' item.product.id %}" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" class="wishlist-toggle" title="Remove from Wishlist" style="color: #C62828;">
+                        <i data-lucide="trash-2" style="width: 18px; height: 18px;"></i>
+                    </button>
+                </form>
+
+                <a href="{{ item.product.get_absolute_url }}">
+                    <img src="{{ item.product.primary_image_url }}" alt="{{ item.product.name }}">
+                </a>
+            </div>
+
+            <div class="card-info">
+                <span class="card-category">{{ item.product.category.name }}</span>
+                <a href="{{ item.product.get_absolute_url }}" class="card-title">{{ item.product.name }}</a>
+
+                <div class="card-price-row">
+                    <span class="price-current">₹{{ item.product.price }}</span>
+                </div>
+
+                <div style="margin-top: 14px;">
+                    <form action="{% url 'cart:add_to_cart' item.product.id %}" method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="quantity" value="1">
+                        <button type="submit" class="btn btn-primary btn-block btn-sm">Move to Bag</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 80px 20px; background: var(--bg-surface); border-radius: var(--radius-md); max-width: 500px; margin: 0 auto;">
+        <i data-lucide="heart" style="width: 56px; height: 56px; color: var(--text-muted); margin-bottom: 20px;"></i>
+        <h2 style="font-size: 1.5rem; margin-bottom: 10px;">Your wishlist is empty</h2>
+        <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 24px;">
+            Save your favorite curated objects while browsing to keep track of items you admire.
+        </p>
+        <a href="{% url 'catalog:product_list' %}" class="btn btn-primary">Discover Essentials</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

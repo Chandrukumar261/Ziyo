@@ -1,0 +1,139 @@
+{% extends 'admin_dashboard/base.html' %}
+{% load static %}
+
+{% block page_heading %}Executive Dashboard{% endblock %}
+
+{% block content %}
+<!-- KPI Metrics Grid -->
+<div class="kpi-grid">
+    <div class="kpi-card">
+        <span class="kpi-title">Gross Paid Revenue</span>
+        <span class="kpi-value">₹{{ total_revenue }}</span>
+        <span class="kpi-trend trend-up">
+            <i data-lucide="trending-up" style="width: 16px; height: 16px;"></i> All-time captured
+        </span>
+    </div>
+
+    <div class="kpi-card">
+        <span class="kpi-title">Today's Sales</span>
+        <span class="kpi-value">₹{{ today_revenue }}</span>
+        <span class="kpi-trend trend-up">
+            <i data-lucide="clock" style="width: 16px; height: 16px;"></i> Real-time tracking
+        </span>
+    </div>
+
+    <div class="kpi-card">
+        <span class="kpi-title">Total Orders</span>
+        <span class="kpi-value">{{ total_orders_count }}</span>
+        <span class="kpi-trend trend-warning">
+            <i data-lucide="package" style="width: 16px; height: 16px;"></i> {{ pending_fulfillment_count }} awaiting fulfillment
+        </span>
+    </div>
+
+    <div class="kpi-card">
+        <span class="kpi-title">Registered Clients</span>
+        <span class="kpi-value">{{ total_customers_count }}</span>
+        <span class="kpi-trend trend-up">
+            <i data-lucide="users" style="width: 16px; height: 16px;"></i> Active CRM accounts
+        </span>
+    </div>
+</div>
+
+<!-- Operational Split -->
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 32px; align-items: start;">
+    <!-- Left: Recent Orders Table -->
+    <div class="admin-card">
+        <div class="admin-card-header">
+            <h3 class="admin-card-title">Recent Orders</h3>
+            <a href="{% url 'dashboard:order_list' %}" class="admin-btn admin-btn-outline admin-btn-sm">
+                View All Orders &rsaquo;
+            </a>
+        </div>
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Order</th>
+                        <th>Customer</th>
+                        <th>Status</th>
+                        <th>Amount</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ord in recent_orders %}
+                    <tr>
+                        <td><strong>#{{ ord.order_number }}</strong></td>
+                        <td>{{ ord.shipping_full_name }}<br><small style="color: var(--admin-text-muted);">{{ ord.email }}</small></td>
+                        <td><span class="status-pill status-{{ ord.status|lower }}">{{ ord.status }}</span></td>
+                        <td><strong>₹{{ ord.total_amount }}</strong></td>
+                        <td>
+                            <a href="{% url 'dashboard:order_detail' ord.id %}" class="admin-btn admin-btn-outline admin-btn-sm">
+                                Fulfill
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: var(--admin-text-muted); padding: 30px;">No orders recorded yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Right: Low Stock & Audit Alerts -->
+    <div>
+        <!-- Low Stock Alerts -->
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h3 class="admin-card-title">Inventory Alerts</h3>
+                <a href="{% url 'dashboard:inventory_list' %}" class="admin-btn admin-btn-outline admin-btn-sm">Manage</a>
+            </div>
+            <div style="padding: 18px 24px;">
+                {% if low_stock_items %}
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    {% for item in low_stock_items %}
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; border-bottom: 1px solid var(--admin-border); padding-bottom: 8px;">
+                        <div>
+                            <strong>{{ item.product.name|truncatewords:4 }}</strong>
+                            <div style="color: var(--admin-text-muted);">SKU: {{ item.sku }}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <span style="color: #C62828; font-weight: 700;">{{ item.available_quantity }} left</span>
+                            <div><a href="{% url 'dashboard:inventory_adjust' item.id %}" style="color: var(--admin-primary); font-size: 0.75rem;">Adjust</a></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p style="color: #2E7D32; font-size: 0.875rem;">✔ All product inventory levels are healthy.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Recent Audit Stream -->
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h3 class="admin-card-title">Security &amp; Audit Log</h3>
+                <a href="{% url 'dashboard:audit_log_list' %}" class="admin-btn admin-btn-outline admin-btn-sm">Full Log</a>
+            </div>
+            <div style="padding: 18px 24px; font-size: 0.85rem;">
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    {% for log in recent_audit_logs %}
+                    <div style="border-bottom: 1px solid var(--admin-border); padding-bottom: 8px;">
+                        <div><strong>{{ log.action }}</strong> &bull; {{ log.resource_type }}</div>
+                        <div style="font-size: 0.75rem; color: var(--admin-text-muted);">
+                            By {{ log.user_email|default:"System" }} &bull; {{ log.timestamp|date:"M d, H:i" }}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p style="color: var(--admin-text-muted);">No administrative events recorded yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

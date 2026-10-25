@@ -1,0 +1,154 @@
+{% extends 'admin_dashboard/base.html' %}
+{% load static %}
+
+{% block page_heading %}Order #{{ order.order_number }}{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 24px;">
+    <a href="{% url 'dashboard:order_list' %}" class="admin-btn admin-btn-outline admin-btn-sm">&larr; Back to Orders</a>
+</div>
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 32px; align-items: start;">
+    <!-- Left: Order Details & Line Items -->
+    <div>
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h3 class="admin-card-title">Purchased Items ({{ order.items.count }})</h3>
+                <span class="status-pill status-{{ order.status|lower }}">{{ order.status }}</span>
+            </div>
+            <div class="admin-table-wrap">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Item Name</th>
+                            <th>SKU</th>
+                            <th>Unit Price</th>
+                            <th>Quantity</th>
+                            <th>Line Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in order.items.all %}
+                        <tr>
+                            <td>
+                                <strong>{{ item.product_name }}</strong>
+                                {% if item.variant_name %}<br><small style="color: var(--admin-text-muted);">{{ item.variant_name }}</small>{% endif %}
+                            </td>
+                            <td><code>{{ item.sku }}</code></td>
+                            <td>₹{{ item.unit_price }}</td>
+                            <td><strong>{{ item.quantity }}</strong></td>
+                            <td><strong>₹{{ item.line_total }}</strong></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Audit & Status History Timeline -->
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h3 class="admin-card-title">Order Lifecycle Timeline</h3>
+            </div>
+            <div style="padding: 24px;">
+                <div style="display: flex; flex-direction: column; gap: 16px; border-left: 2px solid var(--admin-border); padding-left: 20px; margin-left: 8px;">
+                    {% for h in order.status_history.all %}
+                    <div style="position: relative;">
+                        <div style="position: absolute; left: -26px; top: 4px; width: 10px; height: 10px; border-radius: 50%; background: var(--admin-primary);"></div>
+                        <strong>{{ h.status }}</strong> &bull; <small style="color: var(--admin-text-muted);">{{ h.created_at|date:"M d, Y &bull; H:i" }}</small>
+                        {% if h.notes %}<p style="font-size: 0.85rem; color: var(--admin-text-muted); margin-top: 2px;">{{ h.notes }}</p>{% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right: Fulfillment & Customer Summary -->
+    <div>
+        <!-- Fulfillment Form -->
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h3 class="admin-card-title">Fulfillment Action</h3>
+            </div>
+            <div style="padding: 24px;">
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label class="form-label">Order Status</label>
+                        {{ form.status }}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Carrier / Courier</label>
+                        {{ form.carrier }}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Tracking Number</label>
+                        {{ form.tracking_number }}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Fulfillment Audit Note</label>
+                        {{ form.admin_notes }}
+                    </div>
+
+                    <button type="submit" class="admin-btn admin-btn-primary" style="width: 100%;">
+                        Update Fulfillment Status
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Customer & Financial Card -->
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h3 class="admin-card-title">Shipping &amp; Billing</h3>
+            </div>
+            <div style="padding: 20px; font-size: 0.875rem;">
+                <div style="margin-bottom: 16px;">
+                    <strong style="color: var(--admin-text-muted); text-transform: uppercase; font-size: 0.75rem;">Recipient:</strong>
+                    <div style="font-weight: 600; margin-top: 2px;">{{ order.shipping_full_name }}</div>
+                    <div>{{ order.email }}</div>
+                    <div>{{ order.shipping_phone }}</div>
+                </div>
+
+                <div style="margin-bottom: 16px;">
+                    <strong style="color: var(--admin-text-muted); text-transform: uppercase; font-size: 0.75rem;">Delivery Destination:</strong>
+                    <div style="margin-top: 2px; line-height: 1.4;">
+                        {{ order.shipping_address_line_1 }}<br>
+                        {% if order.shipping_address_line_2 %}{{ order.shipping_address_line_2 }}<br>{% endif %}
+                        {{ order.shipping_city }}, {{ order.shipping_state }} - {{ order.shipping_postal_code }}
+                    </div>
+                </div>
+
+                <div style="border-top: 1px solid var(--admin-border); padding-top: 14px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                        <span>Subtotal:</span>
+                        <span>₹{{ order.subtotal }}</span>
+                    </div>
+                    {% if order.discount_amount > 0 %}
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px; color: #C62828;">
+                        <span>Discount ({{ order.coupon_code }}):</span>
+                        <span>-₹{{ order.discount_amount }}</span>
+                    </div>
+                    {% endif %}
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                        <span>Shipping:</span>
+                        <span>₹{{ order.shipping_fee }}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                        <span>GST:</span>
+                        <span>₹{{ order.tax_amount }}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--admin-border); padding-top: 8px; font-weight: 700; font-size: 1.05rem;">
+                        <span>Total Paid:</span>
+                        <span>₹{{ order.total_amount }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
